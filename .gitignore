@@ -1,0 +1,70 @@
+# ─── Delphi: arquivos gerados / compilados ────────────────────────────────────
+*.dcu
+*.dcuil
+*.dcpil
+*.dcp
+*.exe
+*.map
+*.drc
+*.res
+*.ddp
+*.identcache
+*.local
+*.tvsconfig
+*.dsk
+*.~*
+__history/
+__recovery/
+
+# ─── Logs e temporários ───────────────────────────────────────────────────────
+*.log
+*.LOG
+*.mes
+bugreport.txt
+build.log
+PDXRBLD.INI
+PDXRBLD.LOG
+
+# ─── Arquivos de backup criados durante a migração ────────────────────────────
+*.bkp
+*.old
+*.debug-bak
+*.x64-bak
+*.dfm-bkp
+*.dfm-bkp_nao_funcional
+
+# ─── Binários e bibliotecas ───────────────────────────────────────────────────
+*.dll
+*.DLL
+*.bpl
+*.MB
+*.DB
+
+# ─── Arquivos de relatório compilados / caches ───────────────────────────────
+*.rpf
+
+# ─── Compactados e documentos não-fonte ──────────────────────────────────────
+*.zip
+*.7z
+*.rar
+*.pdf
+*.xls
+*.xlsx
+
+# ─── CREDENCIAIS — nunca commitar ────────────────────────────────────────────
+amortrat.ini
+commit.bat
+rec.bat
+rec - Copy.bat
+
+# ─── Diretórios com dados / NFe / arquivos grandes ───────────────────────────
+CQ/
+nfe/
+figura/
+imagens/
+Certificado Digital (backup)/
+
+# ─── Paradox rebuild ─────────────────────────────────────────────────────────
+PDXRBLD.INI
+PDXRBLD.LOG
+config.DB

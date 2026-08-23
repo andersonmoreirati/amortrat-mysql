@@ -1,0 +1,109 @@
+{$OPTIMIZATION ON}
+program amortrat;
+
+uses
+  madExcept,
+  madLinkDisAsm,
+  madListHardware,
+  madListProcesses,
+  madListModules,
+  Forms,
+  Messages,
+  UModulo in 'UModulo.pas' {Modulo: TDataModule},
+  principal in 'principal.pas' {FPrincipal},
+  Uclientes in 'Uclientes.pas' {FClientes},
+  UProcessos in 'UProcessos.pas' {FProcessos},
+  UPecas in 'UPecas.pas' {FPecas},
+  ULocalizar in 'ULocalizar.pas' {FLocalizar},
+  UOS in 'UOS.pas' {FOs},
+  URelatOS in 'URelatOS.pas' {FRelatOS},
+  USplash in 'USplash.pas' {FSplash},
+  UNf in 'UNf.pas' {FNf},
+  UGerrelat in 'UGerrelat.pas' {FGerRelat},
+  URelatCQ in 'URelatCQ.pas' {FRelatCQ},
+  URelatorios in 'URelatorios.pas' {FRelatorios},
+  UReajuste in 'UReajuste.pas' {FReajuste},
+  UUsuarios in 'UUsuarios.pas' {FUsuarios},
+  ULogin in 'ULogin.pas' {FLogin},
+  ufrmStatus in 'ufrmStatus.pas' {frmStatus},
+  UBCrypt in 'UBCrypt.pas',
+  FixBDE4GbBug in 'FixBDE4GbBug.pas',
+  Windows,
+  SysUtils,
+  Variants,
+  Classes;
+
+{$R *.res}
+
+begin
+ // Application.Initialize;
+
+//    Try
+//       Application.CreateForm(TFNf, FNf);
+//   Except
+//    on E : Exception do
+//     begin
+//           Application.MessageBox(pchar('Exception' + E.ClassName),'teste',0) ;
+//           Application.MessageBox(pchar('Exception' + E.Message),'teste',0)    ;
+//     end;
+//
+//   end;
+
+
+  Application.CreateForm(TFPrincipal, FPrincipal);
+  Application.CreateForm(TFSplash, FSplash);
+  Application.CreateForm(TFLogin, FLogin);
+  Application.CreateForm(TfrmStatus, frmStatus);
+  //  Application.CreateForm(TFApontamento, FApontamento);
+  FSplash.Show;
+  FSplash.UpDate;
+//  FSplash.LStatus.Caption := 'Verificando unidade de rede...';
+//  FSplash.UpDate;
+ // If Modulo.Getcomputer = 'ESCRITORIO' then
+ // if Modulo.MapeamentosDisponiveis = 'erro' then
+  //  begin
+  //    Modulo.ConectarRede;
+  //  end;
+  // If Modulo.Getcomputer = 'Administracao' then
+  //if Modulo.MapeamentosDisponiveis = 'erro' then
+  //  begin
+  //    Modulo.ConectarRede;
+  //  end;
+  FSplash.LStatus.Caption := 'Preparando banco de dados...';
+  FSplash.UpDate;
+  Application.CreateForm(TModulo, Modulo);
+  //FSplash.LStatus.Caption := 'Criando formul�rio de Usu�rios...';
+  //FSplash.UpDate;
+  //Application.CreateForm(TFUsuarios, FUsuarios);
+  //FSplash.LStatus.Caption := 'Criando formul�rio de Reajuste de Pre�os...';
+  //FSplash.UpDate;
+  //Application.CreateForm(TFReajuste, FReajuste);
+  FSplash.LStatus.Caption := 'Criando formul�rio de clientes...';
+  FSplash.UpDate;
+  Application.CreateForm(TFClientes, FClientes);
+  //FSplash.LStatus.Caption := 'Criando formul�rio de processos...';
+  //FSplash.UpDate;
+  //Application.CreateForm(TFProcessos, FProcessos);
+  FSplash.LStatus.Caption := 'Criando formul�rio de pe�as...';
+  FSplash.UpDate;
+  Application.CreateForm(TFPecas, FPecas);
+  FSplash.LStatus.Caption := 'Criando formul�rio de busca...';
+  FSplash.UpDate;
+  Application.CreateForm(TFLocalizar, FLocalizar);
+  FSplash.LStatus.Caption := 'Criando formul�rio de OS...';
+  FSplash.UpDate;
+  Application.CreateForm(TFOs, FOs);
+  Application.CreateForm(TFRelatOS, FRelatOS);
+  FSplash.LStatus.Caption := 'Criando relat�rios de CQ...';
+  Application.CreateForm(TFRelatCQ, FRelatCQ);
+  FSplash.UpDate;
+  FSplash.LStatus.Caption := 'Criando formul�rio de NF...';
+  FSplash.UpDate;
+  Application.CreateForm(TFNf, FNf);
+  FSplash.LStatus.Caption := 'Inicializando...';
+  FSplash.UpDate;
+  FSplash.hide;
+  FSplash.free;
+  FLogin.ShowModal;
+  Application.Run;
+end.

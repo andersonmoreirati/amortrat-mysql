@@ -1,0 +1,6 @@
+[BD]
+Host=SEU_HOST_MYSQL
+Porta=3306
+Banco=NOME_DO_BANCO
+Usuario=USUARIO
+Senha=SENHA

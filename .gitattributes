@@ -1,0 +1,19 @@
+# Fontes Delphi são latin-1 / Windows-1252 com CRLF.
+# Forçamos CRLF para que o checkout no Windows não altere os arquivos.
+*.pas   text eol=crlf
+*.dpr   text eol=crlf
+*.dpk   text eol=crlf
+*.dproj text eol=crlf
+*.dfm   text eol=crlf
+*.bat   text eol=crlf
+*.md    text eol=crlf
+
+# Binários — sem conversão de linha
+*.dcu   binary
+*.exe   binary
+*.dll   binary
+*.res   binary
+*.bmp   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
