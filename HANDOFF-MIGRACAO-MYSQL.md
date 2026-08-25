@@ -2,7 +2,7 @@
 
 > Documento de continuidade. Escrito para que outra máquina/sessão retome o
 > trabalho sem repetir análise nem repetir erros.
-> Última atualização: **2026-08-23**
+> Última atualização: **2026-08-25**
 
 ---
 
@@ -30,13 +30,16 @@ Paradox for desativado.
 ## 2. Ambiente
 
 ```
-Projeto ............ D:\AMORTRAT\mysql\code
+Projeto ............ C:\Amortrat\mysql\code   ← era D:\ na máquina anterior
 Projeto compilado .. amortrat_mysql.dproj  (o .dpr é amortrat.dpr)
 Delphi ............. RAD Studio 7.0 (Delphi 2010) — C:\Program Files (x86)\Embarcadero\RAD Studio\7.0
-ZeosLib ............ 8.0.0-stable — D:\PROGRAMACAO\DELPHI\zeosdbo-8.0.0-stable
+ZeosLib ............ 8.0.0-stable — C:\Programacao\Delphi\zeosdbo-8.0.0-stable
                      design-time package instalado: ZComponentDesign140.bpl
 FortesReport ....... CE 4.0 (VCL) — packages RLibWinD6vcl / RLibWinD7vcl
 Paradox (produção).. D:\AMORTRAT\BD\Copy   (alias BDE 'amortrat')
+Git / GitHub ....... github.com/andersonmoreirati/amortrat-mysql (SSH)
+                     chave: C:\Users\User\.ssh\id_ed25519
+                     git em: C:\Program Files\Git  (adicionar ao PATH a cada shell nova)
 ```
 
 **Banco MySQL** — credenciais em `D:\AMORTRAT\mysql\code\amortrat.ini`:
@@ -253,6 +256,26 @@ grep -nE "\bDBTables\b|TBDEDataSet|as TTable|as TQuery" <lib>.pas
 - `TDBCheckBox`: genérico. **Mantido** (só ajustar `ValueChecked`, ver armadilha #6).
 
 Isso poupou muito trabalho no ULocalizar, UUsuarios e nos dois reports.
+
+---
+
+## 4.9 Git — fluxo de commit adotado (2026-08-25)
+
+Repositório GitHub: `git@github.com:andersonmoreirati/amortrat-mysql.git`
+
+Commitar a cada alteração relevante:
+
+```powershell
+$env:PATH += ";C:\Program Files\Git\bin"   # necessário a cada shell nova
+cd C:\Amortrat\mysql\code
+git add .
+git commit -m "tipo: descrição curta"
+git push
+```
+
+**Regras do `.gitignore`:** nunca commitar `.dcu`, `.exe`, `.dll`, `.map`,
+`amortrat.ini` (senha do banco), `commit.bat`/`rec.bat` (tinham token hardcoded).
+O token PAT antigo (`ghp_a4Pj...`) foi **revogado** em 2026-08-25.
 
 ---
 
@@ -531,6 +554,45 @@ ALTER TABLE tb_os ADD CONSTRAINT FK_OS_FORNEC FOREIGN KEY (FORNECEDOR)
 O `Append`/`Post` cedo era **concorrência** (#4.4). O `TabEnter1` "nunca
 referenciado" **age sozinho** (faz Enter navegar como Tab) — removê-lo mudaria o
 teclado. `Filtered=True` sem `Filter` é inerte.
+
+### #19 — Resíduos de QuickReport no `uses` → `MSXML_TLB.dcu` não encontrado (2026-08-25)
+
+**Sintoma (máquina nova):** `[DCC Fatal Error] URelatCQ.pas(16): F1026 File not found: 'MSXML_TLB.dcu'`
+
+**Causa:** `URelatCQ` tinha `QRCtrls, QuickRpt` no `uses` — resíduo da versão
+Paradox. O QuickReport instalado só existe em subpastas (`lib\QR504\`) fora do
+Library Path padrão. O form já usa FortesReport exclusivamente.
+
+**Correção:** remover `QRCtrls, QuickRpt` do `uses` de `URelatCQ.pas`. Nenhum
+componente ou símbolo desses units era usado no código nem no DFM.
+
+**Busca preventiva:** `grep -ri "QRCtrls\|QuickRpt" *.pas` — já verificado, só
+estava em `URelatCQ`.
+
+### #20 — `ZConexao.Commit` com `AutoCommit=True` lança exceção no ZeosLib 8.x (2026-08-25)
+
+**Sintoma:** `EZDatabaseError: 'Invalid operation in AutoCommit mode'` ao gerar
+qualquer relatório no `UGerrelat`. No IDE aparece como "Debugger Exception
+Notification" antes do `except` tratar.
+
+**Causa:** `TModulo.NovaLeitura` chamava `ZConexao.Commit` quando `AutoCommit=True`
+para encerrar o snapshot REPEATABLE READ. Em versões anteriores do ZeosLib o driver
+tolerava; no 8.x `CheckNonAutoCommitMode` lança a exceção de forma garantida
+(linha 1129 de `ZAbstractConnection.pas`).
+
+**Correção aplicada em `UModulo.NovaLeitura`:**
+
+```pascal
+// Antes (lançava exceção no ZeosLib 8.x):
+ZConexao.Commit;
+
+// Depois (correto):
+ZConexao.StartTransaction;   // emite BEGIN → ajusta contadores internos
+ZConexao.Commit;             // emite COMMIT → reseta snapshot, restaura AutoCommit=True
+```
+
+`StartTransaction` com `AutoCommit=True` é a forma suportada pelo ZeosLib 8.x
+para forçar um ciclo BEGIN/COMMIT sem conflito com os contadores internos.
 
 ---
 
