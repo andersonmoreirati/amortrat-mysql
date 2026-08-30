@@ -5257,7 +5257,6 @@ object FPrincipal: TFPrincipal
   object scExcelExport1: TscExcelExport
     ExcelVisible = False
     DataPipe = dpDataSet
-    Dataset = Modulo.VendasGerais
     StyleColumnWidth = cwEnhAutoFit
     ColumnWidth = 0
     FontHeader.Charset = DEFAULT_CHARSET
@@ -5334,7 +5333,6 @@ object FPrincipal: TFPrincipal
   object scExcelExport2: TscExcelExport
     ExcelVisible = False
     DataPipe = dpDataSet
-    Dataset = Modulo.VendasGerais
     StyleColumnWidth = cwEnhAutoFit
     ColumnWidth = 0
     FontHeader.Charset = DEFAULT_CHARSET
@@ -5404,7 +5402,6 @@ object FPrincipal: TFPrincipal
   object scExcelExport3: TscExcelExport
     ExcelVisible = False
     DataPipe = dpDataSet
-    Dataset = Modulo.VendasGerais
     StyleColumnWidth = cwEnhAutoFit
     ColumnWidth = 0
     FontHeader.Charset = DEFAULT_CHARSET
@@ -5510,161 +5507,53 @@ object FPrincipal: TFPrincipal
     Left = 176
     Top = 112
   end
-  object QResumo: TRxQuery
-    DatabaseName = 'amortrat'
-    SQL.Strings = (
-      'select '
-      'sum(o.peso) vlr'
-      'from  os o'
-      'where '
-      'extract(MONTH from o.data) = '#39'04'#39#9#9
-      'and  extract(YEAR from o.data) = '#39'2025'#39
-      'and  extract(DAY from o.data) = '#39'24'#39'   '
-      'union all'
-      'select '
-      'sum(o.peso) vlr'
-      'from  os o'
-      'where '
-      'extract(MONTH from o.data) = '#39'04'#39#9#9
-      'and  extract(YEAR from o.data) = '#39'2025'#39
-      'and  extract(DAY from o.data) = '#39'23'#39'   '
-      'union all'
-      'select '
-      'sum(f.valor) vlr'
-      'from  os o, os_finalizados f'
-      'where '
-      'o.codigo = f.codigo'
-      'and extract(MONTH from f.data_fim) = '#39'04'#39#9#9
-      'and  extract(YEAR from f.data_fim) = '#39'2025'#39
-      'union all'
-      'select '
-      'sum(o.peso) vlr'
-      'from  os o, os_finalizados f'
-      'where '
-      'o.codigo = f.codigo'
-      'and extract(MONTH from f.data_fim) = '#39'04'#39#9#9
-      'and  extract(YEAR from f.data_fim) = '#39'2025'#39
-      'union all'
-      'select '
-      'sum(o.peso) vlr'
-      'from  os o'
-      'where '
-      '(o.FINALIZADA is null or o.FINALIZADA = false)'
-      'and extract(YEAR from o.data) >= '#39'2025'#39)
-    Macros = <>
+  object QResumo: TZQuery
     Left = 176
     Top = 160
-    object QResumovlr: TFloatField
-      FieldName = 'vlr'
-    end
   end
-  object QOs: TRxQuery
-    DatabaseName = 'Amortrat'
-    SQL.Strings = (
-      
-        'select B.CODIGO, B.CLIENTE, B.PECA, B.DATA, B.PESO, C.CODIGO, C.' +
-        'COD_CLI, C.DESCRICAO, D.CODIGO, D.FANTASIA, B.URGENCIA, 2  LEADT' +
-        'IME, P.PROCESSO'
-      'from OS B, PECAS C, CLIENTES D, PROC P'
-      
-        'where C.CODIGO = B.PECA and C.COD_CLI = B.CLIENTE and D.CODIGO =' +
-        ' B.CLIENTE and B.CLIENTE = "0003"'
-      'AND C.COD_PROC = P.CODIGO'
-      'order by B.CODIGO')
-    Macros = <>
+  object QOs: TZQuery
     Left = 176
     Top = 216
-    object QOsCODIGO: TStringField
-      FieldName = 'CODIGO'
-      Origin = 'AMORTRAT."OS.DB".CODIGO'
-      Size = 8
-    end
-    object QOsCLIENTE: TStringField
-      FieldName = 'CLIENTE'
-      Origin = 'AMORTRAT."OS.DB".CLIENTE'
-      Size = 4
-    end
-    object QOsPECA: TStringField
-      FieldName = 'PECA'
-      Origin = 'AMORTRAT."OS.DB".PECA'
-      Size = 2
-    end
-    object QOsDATA: TDateField
-      FieldName = 'DATA'
-      Origin = 'AMORTRAT."OS.DB".DATA'
-    end
-    object QOsCODIGO_1: TStringField
-      FieldName = 'CODIGO_1'
-      Origin = 'AMORTRAT."PECAS.DB".CODIGO'
-      Size = 2
-    end
-    object QOsCOD_CLI: TStringField
-      FieldName = 'COD_CLI'
-      Origin = 'AMORTRAT."PECAS.DB".COD_CLI'
-      Size = 4
-    end
-    object QOsDESCRICAO: TStringField
-      FieldName = 'DESCRICAO'
-      Origin = 'AMORTRAT."PECAS.DB".DESCRICAO'
-      Size = 30
-    end
-    object QOsCODIGO_2: TStringField
-      FieldName = 'CODIGO_2'
-      Origin = 'AMORTRAT."CLIENTES.DB".CODIGO'
-      Size = 4
-    end
-    object QOsFANTASIA: TStringField
-      FieldName = 'FANTASIA'
-      Origin = 'AMORTRAT."CLIENTES.DB".FANTASIA'
-    end
-    object QOsPESO: TFloatField
-      FieldName = 'PESO'
-      Origin = 'AMORTRAT."os.DB".PESO'
-    end
-    object QOsURGENCIA: TStringField
-      FieldName = 'URGENCIA'
-      Origin = 'AMORTRAT."OS.DB".URGENCIA'
-      Size = 1
-    end
-    object QOsLEADTIME: TFloatField
-      FieldName = 'LEADTIME'
-      Precision = 2
-    end
-    object QOsPROCESSO: TStringField
-      FieldName = 'PROCESSO'
-    end
   end
-  object QRank: TRxQuery
-    CachedUpdates = True
-    DatabaseName = 'Amortrat'
-    SQL.Strings = (
-      
-        'select SUM(A.PESO) PESO, MAX(B.FANTASIA) FANTASIA, SUM(C.VALOR) ' +
-        'VALOR_G'
-      'from OS A, CLIENTES B, OS_FINALIZADOS C'
-      'where B.CODIGO = A.CLIENTE and C.CODIGO = A.CODIGO'
-      'group by A.CLIENTE, B.CODIGO'
-      'ORDER BY PESO DESC')
-    Macros = <>
+  object QRank: TZQuery
     Left = 176
     Top = 272
-    object QRankPESO: TFloatField
-      FieldName = 'PESO'
-      Origin = 'AMORTRAT."OS.DB".PESO'
-    end
-    object QRankFANTASIA: TStringField
-      FieldName = 'FANTASIA'
-      Origin = 'AMORTRAT."CLIENTES.DB".FANTASIA'
-    end
-    object QRankVALOR_G: TCurrencyField
-      FieldName = 'VALOR_G'
-      Origin = 'AMORTRAT."OS_FINALIZADOS.DB".VALOR'
-    end
+  end
+  object QConfig: TZQuery
+    Left = 176
+    Top = 328
+  end
+  object QVendasGerais: TZQuery
+    Left = 232
+    Top = 160
+  end
+  object QOrdensNaoFinalizadas: TZQuery
+    Left = 232
+    Top = 216
+  end
+  object QPesoTotal: TZQuery
+    Left = 232
+    Top = 272
+  end
+  object QOrdensDoAno: TZQuery
+    Left = 232
+    Top = 328
+  end
+  object QOrdensFinalizadasDoAno: TZQuery
+    Left = 288
+    Top = 160
+  end
+  object QExpClientes: TZQuery
+    Left = 288
+    Top = 216
+  end
+  object QExpPecas: TZQuery
+    Left = 288
+    Top = 272
   end
   object scExcelCliente: TscExcelExport
     ExcelVisible = False
     DataPipe = dpDataSet
-    Dataset = Modulo.TBClientes
     StyleColumnWidth = cwEnhAutoFit
     ColumnWidth = 0
     FontHeader.Charset = DEFAULT_CHARSET
@@ -5734,7 +5623,6 @@ object FPrincipal: TFPrincipal
   object scExcelPecas: TscExcelExport
     ExcelVisible = False
     DataPipe = dpDataSet
-    Dataset = Modulo.TBPecas
     StyleColumnWidth = cwEnhAutoFit
     ColumnWidth = 0
     FontHeader.Charset = DEFAULT_CHARSET
@@ -5804,7 +5692,6 @@ object FPrincipal: TFPrincipal
   object scExcelOS: TscExcelExport
     ExcelVisible = False
     DataPipe = dpDataSet
-    Dataset = Modulo.TBClientes
     StyleColumnWidth = cwEnhAutoFit
     ColumnWidth = 0
     FontHeader.Charset = DEFAULT_CHARSET
@@ -5874,7 +5761,6 @@ object FPrincipal: TFPrincipal
   object scExcelOSFinalizados: TscExcelExport
     ExcelVisible = False
     DataPipe = dpDataSet
-    Dataset = Modulo.TBClientes
     StyleColumnWidth = cwEnhAutoFit
     ColumnWidth = 0
     FontHeader.Charset = DEFAULT_CHARSET
