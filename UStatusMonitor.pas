@@ -23,7 +23,7 @@ unit UStatusMonitor;
 
   Uso:
       MonitorStatus.IniciarBanco;      // dispara se ja nao houver uma rodando
-      MonitorStatus.IniciarNFe(2);     // 1=producao 2=homologacao
+      MonitorStatus.IniciarNFe('1', PathPFX, Senha, 'SP');   // 1=producao
       Info := MonitorStatus.LerBanco;  // no OnTimer do form
 }
 
@@ -61,7 +61,10 @@ type
     destructor  Destroy; override;
 
     procedure IniciarBanco;
-    procedure IniciarNFe(const Ambiente: string);
+    { Certificado e senha vem de tb_config 1 e 2 (os mesmos que o UNf usa).
+      O StatusServico da SEFAZ exige certificado - sem ele o ACBr levanta
+      EACBrDFeException. }
+    procedure IniciarNFe(const Ambiente, ArquivoPFX, SenhaPFX, UF: string);
 
     function  LerBanco: TStatusInfo;
     function  LerNFe: TStatusInfo;
@@ -91,6 +94,9 @@ type
   TThreadNFe = class(TThread)
   private
     FAmbiente: string;
+    FArquivoPFX: string;
+    FSenhaPFX: string;
+    FUF: string;
     FInfo: TStatusInfo;
   protected
     procedure Execute; override;
@@ -192,9 +198,27 @@ begin
   T.Resume;
 end;
 
-procedure TMonitorStatus.IniciarNFe(const Ambiente: string);
+procedure TMonitorStatus.IniciarNFe(const Ambiente, ArquivoPFX, SenhaPFX, UF: string);
 var T: TThreadNFe;
+    Info: TStatusInfo;
 begin
+  { Sem certificado nao ha o que consultar: o StatusServico exige assinatura.
+    Em vez de deixar o ACBr levantar excecao, publica cinza com o motivo. }
+  if (Trim(ArquivoPFX) = '') or (not FileExists(ArquivoPFX)) then
+  begin
+    FillChar(Info, SizeOf(Info), 0);
+    Info.Nivel      := snDesconhecido;
+    Info.Titulo     := 'Status da NF-e nao verificavel';
+    Info.Verificado := True;
+    Info.Quando     := Now;
+    if Trim(ArquivoPFX) = '' then
+      Info.Detalhe := 'Certificado nao configurado (tb_config 1)'
+    else
+      Info.Detalhe := 'Certificado nao encontrado: ' + ArquivoPFX;
+    GravarNFe(Info);
+    Exit;
+  end;
+
   FLock.Acquire;
   try
     if FNFeRodando then Exit;
@@ -205,7 +229,10 @@ begin
   end;
 
   T := TThreadNFe.Create(True);
-  T.FAmbiente := Ambiente;
+  T.FAmbiente   := Ambiente;
+  T.FArquivoPFX := ArquivoPFX;
+  T.FSenhaPFX   := SenhaPFX;
+  if Trim(UF) = '' then T.FUF := 'SP' else T.FUF := UF;
   T.FreeOnTerminate := True;
   T.Priority := tpLower;
   T.Resume;
@@ -331,12 +358,20 @@ begin
       { Instancia exclusiva desta thread. O ACBr nao e thread-safe, entao
         reaproveitar o FNf.ACBrNFe1 daria corrupcao silenciosa. }
       ACBr := TACBrNFe.Create(nil);
-      ACBr.Configuracoes.WebServices.UF      := 'SP';
+      { O StatusServico e uma chamada assinada: sem certificado o ACBr levanta
+        EACBrDFeException('DadosPFX, ArquivoPFX, URLPFX ou NumeroSerie nao
+        especificados'). Usa o mesmo PFX que o UNf (tb_config 1 e 2). }
+      ACBr.Configuracoes.Certificados.ArquivoPFX := FArquivoPFX;
+      ACBr.Configuracoes.Certificados.Senha      := FSenhaPFX;
+
+      ACBr.Configuracoes.WebServices.UF      := FUF;
       ACBr.Configuracoes.WebServices.Ambiente := StrToTpAmb(Ok, FAmbiente);
       ACBr.Configuracoes.WebServices.TimeOut := 12000;   { 12s - o default e 5s }
       ACBr.Configuracoes.WebServices.AguardarConsultaRet := 0;
       ACBr.Configuracoes.Geral.SSLLib        := libOpenSSL;
+      ACBr.Configuracoes.Geral.SSLCryptLib   := cryOpenSSL;
       ACBr.Configuracoes.Geral.SSLHttpLib    := httpOpenSSL;
+      ACBr.Configuracoes.Geral.SSLXmlSignLib := xsLibXml2;
       ACBr.Configuracoes.Arquivos.Salvar     := False;
       ACBr.Configuracoes.Arquivos.SalvarEvento := False;
 

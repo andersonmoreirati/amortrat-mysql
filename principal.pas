@@ -117,8 +117,13 @@ type
     FUltBanco: TDateTime;          { quando disparei a ultima checagem de banco }
     FUltNFe: TDateTime;            { idem, NF-e }
     FAmbienteNFe: string;          { '1'=producao '2'=homologacao (tb_config 4) }
+    FCertPFX: string;              { tb_config 1 - certificado A1 }
+    FCertSenha: string;            { tb_config 2 }
+    FUFNFe: string;                { tb_config 5 }
+    FCfgNFeLida: Boolean;
     function  GarantirConexao: Boolean;
     function  LerConfig(CodConfig: Integer): string;
+    procedure CarregarCfgNFe;
     procedure PintarSemaforo;
   public
   function AliasToPath(Alias : String) : String;
@@ -267,8 +272,31 @@ begin
           MonitorStatus.NFeTravado(WATCHDOG_NFE_SEG), 'Servico de NF-e');
 end;
 
+procedure TFPrincipal.CarregarCfgNFe;
+{ Le uma unica vez o que a consulta de status precisa - as mesmas chaves de
+  tb_config que o UNf.FormCreate usa para emitir:
+    1 = caminho do certificado A1 (.pfx)
+    2 = senha do certificado
+    4 = ambiente ('1' producao, '2' homologacao)
+    5 = UF do webservice }
+begin
+  if FCfgNFeLida then Exit;
+  try
+    FCertPFX     := LerConfig(1);
+    FCertSenha   := LerConfig(2);
+    FAmbienteNFe := LerConfig(4);
+    FUFNFe       := LerConfig(5);
+  except
+    { banco fora do ar: tenta de novo no proximo ciclo }
+    Exit;
+  end;
+  if FAmbienteNFe = '' then FAmbienteNFe := '2';   { na duvida, homologacao }
+  if FUFNFe = '' then FUFNFe := 'SP';
+  FCfgNFeLida := True;
+end;
+
 procedure TFPrincipal.TimerStatusTimer(Sender: TObject);
-{ Roda a cada 5s. So agenda threads e repinta - nunca faz I/O. }
+{ Roda a cada 5s. So agenda threads e repinta - nunca faz I/O de rede. }
 begin
   if (FUltBanco = 0) or (SecondsBetween(Now, FUltBanco) >= INTERVALO_BANCO_SEG) then
   begin
@@ -279,14 +307,8 @@ begin
   if (FUltNFe = 0) or (SecondsBetween(Now, FUltNFe) >= INTERVALO_NFE_SEG) then
   begin
     FUltNFe := Now;
-    { Ambiente vem de tb_config 4, o mesmo que o UNf usa para emitir. Lido uma
-      vez; se ainda nao foi lido, assume homologacao (mais conservador). }
-    if FAmbienteNFe = '' then
-    begin
-      try FAmbienteNFe := LerConfig(4); except end;
-      if FAmbienteNFe = '' then FAmbienteNFe := '2';
-    end;
-    MonitorStatus.IniciarNFe(FAmbienteNFe);
+    CarregarCfgNFe;
+    MonitorStatus.IniciarNFe(FAmbienteNFe, FCertPFX, FCertSenha, FUFNFe);
   end;
 
   PintarSemaforo;
@@ -294,7 +316,7 @@ end;
 
 procedure TFPrincipal.ShapeStatusMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
-{ Clique force uma reverificacao imediata do indicador correspondente. }
+{ Clique forca uma reverificacao imediata do indicador correspondente. }
 begin
   if (Sender = ShapeBD) or (Sender = LbBD) then
   begin
@@ -304,12 +326,8 @@ begin
   else if (Sender = ShapeNFe) or (Sender = LbNFe) then
   begin
     FUltNFe := Now;
-    if FAmbienteNFe = '' then
-    begin
-      try FAmbienteNFe := LerConfig(4); except end;
-      if FAmbienteNFe = '' then FAmbienteNFe := '2';
-    end;
-    MonitorStatus.IniciarNFe(FAmbienteNFe);
+    CarregarCfgNFe;
+    MonitorStatus.IniciarNFe(FAmbienteNFe, FCertPFX, FCertSenha, FUFNFe);
   end;
   PintarSemaforo;
 end;
@@ -563,7 +581,7 @@ begin
   TimerStatus.Enabled := True;
 
   if not GarantirConexao then Exit;
-  FAmbienteNFe := LerConfig(4);
+  CarregarCfgNFe;
   if FAmbienteNFe = '2' then
     Caption := FCaptionBase + ' <<< AMBIENTE DE HOMOLOGAÇAO >>>';
 end;

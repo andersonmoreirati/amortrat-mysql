@@ -1313,9 +1313,9 @@ object FSplash: TFSplash
     Height = 13
     AutoSize = False
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clNavy
+    Font.Color = 7453695
     Font.Height = -11
-    Font.Name = 'Arial'
+    Font.Name = 'Segoe UI'
     Font.Style = []
     ParentFont = False
     Transparent = True
@@ -1327,7 +1327,7 @@ object FSplash: TFSplash
     Height = 17
     RichText = 
       '{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\fnil\fcharset0 Calibr' +
-      'i;}{\f1\fnil Arial;}}'#13#10'{\colortbl ;\red128\green0\blue0;}'#13#10'\view' +
+      'i;}{\f1\fnil Arial;}}'#13#10'{\colortbl ;\red110\green122\blue138;}'#13#10'\view' +
       'kind4\uc1\pard\cf1\lang1033\b\f0\fs20 D2010\cf0\lang1046\b0\f1\f' +
       's16\par'#13#10'}'#13#10#0
     Transparent = True
