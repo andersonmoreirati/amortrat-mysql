@@ -256,6 +256,7 @@ type
     procedure Desabilitar;
     procedure Limpar;
     procedure Habilitar;
+    procedure AjustarBotoesFinalizacao(OSExiste: Boolean; Finalizada: Integer);
     function RetAno(dData : TDateTime): string;
     function RetZero(ZEROS:string;QUANT:integer):String;
     function  GarantirConexao: Boolean;
@@ -786,6 +787,50 @@ end;
 end;
 
 
+procedure TFOs.AjustarBotoesFinalizacao(OSExiste: Boolean; Finalizada: Integer);
+{ Deixa visivel na tela o estado real da OS.
+
+  O Habilitar acima liga TODOS os TIAeverButton de uma vez e so corrige
+  BTFinalizar/BTRetrabalho/BTDevolucao quando tipo='gravar'. Como o BTOKClick
+  chama Habilitar ANTES de consultar o banco, ao abrir uma OS existente
+  sobrava o pior dos dois mundos: BTDesfinalizar habilitado e BTFinalizar
+  desabilitado - a tela dizia que a OS estava finalizada mesmo com
+  FINALIZADA = 0 no banco.
+
+  Regras:
+    OS nova (ainda nao existe) -> nada de finalizacao faz sentido
+    OS existe e FINALIZADA = 0 -> pode finalizar; nao ha o que desfinalizar
+    OS existe e FINALIZADA = 1 -> pode desfinalizar, marcar retrabalho e
+                                  devolucao (essas duas gravam em
+                                  tb_os_finalizados, que so existe depois
+                                  de finalizada) }
+begin
+  if not OSExiste then
+  begin
+    BTFinalizar.Enabled    := False;
+    BTRetrabalho.Enabled   := False;
+    BTDevolucao.Enabled    := False;
+    BTDesfinalizar.Enabled := False;
+    Exit;
+  end;
+
+  if Finalizada = 0 then
+  begin
+    BTFinalizar.Enabled    := True;
+    BTRetrabalho.Enabled   := False;
+    BTDevolucao.Enabled    := False;
+    BTDesfinalizar.Enabled := False;
+  end
+  else
+  begin
+    BTFinalizar.Enabled    := False;
+    BTRetrabalho.Enabled   := True;
+    BTDevolucao.Enabled    := True;
+    BTDesfinalizar.Enabled := True;
+  end;
+end;
+
+
 procedure TFOs.BTSairClick(Sender: TObject);
 begin
 close;
@@ -1163,11 +1208,16 @@ begin
   tipo := 'gravar';
   BTIMPRIMIR.Enabled := FALSE;
   BTTerceirizar.Enabled := false;
+  AjustarBotoesFinalizacao(False, 0);
 end
 else
 begin
   tipo := 'alterar';
   BTTerceirizar.Enabled := true;
+
+  { O Habilitar rodou la em cima com tipo='gravar' e ligou todos os botoes.
+    Agora que sabemos o estado real da OS, acerta quem pode o que. }
+  AjustarBotoesFinalizacao(True, QDesfinalizar.FieldByName('FINALIZADA').AsInteger);
 
   ECliente.text := QDesfinalizar.FieldByName('CLIENTE').AsString;
   if not QDesfinalizar.FieldByName('DATA').IsNull then
