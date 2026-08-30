@@ -7,10 +7,10 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Menus, BarMenus, BcDrawModule, BcCustomDrawModule, ImgList,
   ComCtrls, AdvStatus, VrControls, VrLcd, VrLabel,
-  ExtCtrls, jpeg, ShellApi, StdCtrls,
+  ExtCtrls, jpeg, pngimage, ShellApi, StdCtrls, DateUtils,
   mdTabEnter,mdShell, PkgAdvStatus, scExcelExport, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
   IdHTTP, IdSSLOpenSSL, IdIOHandler, IdIOHandlerSocket, IdIOHandlerStack, IdSSL,
-  DB, ZDataset, IdAuthentication;
+  DB, ZDataset, IdAuthentication, UStatusMonitor;
 
     function EscapeJSON(const S: string): string;
     function AjustarString(const S: string; N: integer): string;
@@ -75,6 +75,13 @@ type
     PowerBI1: TMenuItem;
     scExcelOS: TscExcelExport;
     scExcelOSFinalizados: TscExcelExport;
+    { Semaforo de disponibilidade na barra de status. As verificacoes rodam em
+      threads (UStatusMonitor); aqui so lemos o resultado e pintamos o circulo. }
+    ShapeBD: TShape;
+    LbBD: TLabel;
+    ShapeNFe: TShape;
+    LbNFe: TLabel;
+    TimerStatus: TTimer;
     procedure Sair1Click(Sender: TObject);
     procedure Clientes1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -99,13 +106,20 @@ type
     procedure RankingFaturamentoMs1Click(Sender: TObject);
     procedure ControleProduo1Click(Sender: TObject);
     procedure PowerBI1Click(Sender: TObject);
+    procedure TimerStatusTimer(Sender: TObject);
+    procedure ShapeStatusMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
 
 
   private
     { Private declarations }
     FCaptionBase: string;          { campos ANTES dos metodos - armadilha #3 }
+    FUltBanco: TDateTime;          { quando disparei a ultima checagem de banco }
+    FUltNFe: TDateTime;            { idem, NF-e }
+    FAmbienteNFe: string;          { '1'=producao '2'=homologacao (tb_config 4) }
     function  GarantirConexao: Boolean;
     function  LerConfig(CodConfig: Integer): string;
+    procedure PintarSemaforo;
   public
   function AliasToPath(Alias : String) : String;
   function DiskInDrive(const Drive: char): Boolean;
@@ -187,6 +201,117 @@ begin
   finally
     QConfig.Close;
   end;
+end;
+
+// ---------------------------------------------------------------------------
+// Semaforo de disponibilidade (banco + NF-e)
+// ---------------------------------------------------------------------------
+// As verificacoes NAO acontecem aqui: cada uma roda numa thread propria em
+// UStatusMonitor, com conexao/instancia exclusiva. Este form so LE o ultimo
+// resultado publicado e pinta o circulo. Nenhuma chamada aqui bloqueia.
+//
+// Cadencia: banco a cada 60s, NF-e a cada 5 min. Os 5 min nao sao estetica -
+// o MOC da SEFAZ limita consultas de status por CNPJ e consultar demais pode
+// gerar bloqueio temporario.
+//
+// Se uma thread demorar alem do watchdog (banco 20s, NF-e 45s), o circulo cai
+// para cinza "nao foi possivel obter" em vez de mostrar um estado velho.
+
+const
+  INTERVALO_BANCO_SEG = 60;
+  INTERVALO_NFE_SEG   = 300;
+  WATCHDOG_BANCO_SEG  = 20;
+  WATCHDOG_NFE_SEG    = 45;
+
+procedure TFPrincipal.PintarSemaforo;
+
+  procedure Aplicar(Shape: TShape; Lb: TLabel; const Info: TStatusInfo;
+                    Travado: Boolean; const Rotulo: string);
+  var Nivel: TStatusNivel;
+      Hint: string;
+  begin
+    if Travado then
+      Nivel := snDesconhecido        { estourou o watchdog }
+    else if not Info.Verificado then
+      Nivel := snDesconhecido        { ainda nao houve nenhuma resposta }
+    else
+      Nivel := Info.Nivel;
+
+    case Nivel of
+      snOk:      Shape.Brush.Color := $0037B34A;   { verde  }
+      snAtencao: Shape.Brush.Color := $0020C0F0;   { ambar  }
+      snFalha:   Shape.Brush.Color := $003B37E0;   { vermelho }
+    else         Shape.Brush.Color := clSilver;    { desconhecido }
+    end;
+
+    if Nivel = snDesconhecido then
+    begin
+      if Travado then
+        Hint := Rotulo + ': verificando... (sem resposta ate agora)'
+      else
+        Hint := Rotulo + ': aguardando primeira verificacao';
+    end
+    else
+      Hint := Info.Titulo + #13#10 + Info.Detalhe + #13#10 +
+              'Verificado as ' + FormatDateTime('hh:nn:ss', Info.Quando);
+
+    Hint := Hint + #13#10 + '(clique para verificar agora)';
+    Shape.Hint := Hint;  Shape.ShowHint := True;
+    Lb.Hint    := Hint;  Lb.ShowHint    := True;
+  end;
+
+begin
+  Aplicar(ShapeBD,  LbBD,  MonitorStatus.LerBanco,
+          MonitorStatus.BancoTravado(WATCHDOG_BANCO_SEG), 'Banco de dados');
+  Aplicar(ShapeNFe, LbNFe, MonitorStatus.LerNFe,
+          MonitorStatus.NFeTravado(WATCHDOG_NFE_SEG), 'Servico de NF-e');
+end;
+
+procedure TFPrincipal.TimerStatusTimer(Sender: TObject);
+{ Roda a cada 5s. So agenda threads e repinta - nunca faz I/O. }
+begin
+  if (FUltBanco = 0) or (SecondsBetween(Now, FUltBanco) >= INTERVALO_BANCO_SEG) then
+  begin
+    FUltBanco := Now;
+    MonitorStatus.IniciarBanco;
+  end;
+
+  if (FUltNFe = 0) or (SecondsBetween(Now, FUltNFe) >= INTERVALO_NFE_SEG) then
+  begin
+    FUltNFe := Now;
+    { Ambiente vem de tb_config 4, o mesmo que o UNf usa para emitir. Lido uma
+      vez; se ainda nao foi lido, assume homologacao (mais conservador). }
+    if FAmbienteNFe = '' then
+    begin
+      try FAmbienteNFe := LerConfig(4); except end;
+      if FAmbienteNFe = '' then FAmbienteNFe := '2';
+    end;
+    MonitorStatus.IniciarNFe(FAmbienteNFe);
+  end;
+
+  PintarSemaforo;
+end;
+
+procedure TFPrincipal.ShapeStatusMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+{ Clique force uma reverificacao imediata do indicador correspondente. }
+begin
+  if (Sender = ShapeBD) or (Sender = LbBD) then
+  begin
+    FUltBanco := Now;
+    MonitorStatus.IniciarBanco;
+  end
+  else if (Sender = ShapeNFe) or (Sender = LbNFe) then
+  begin
+    FUltNFe := Now;
+    if FAmbienteNFe = '' then
+    begin
+      try FAmbienteNFe := LerConfig(4); except end;
+      if FAmbienteNFe = '' then FAmbienteNFe := '2';
+    end;
+    MonitorStatus.IniciarNFe(FAmbienteNFe);
+  end;
+  PintarSemaforo;
 end;
 
 function TFPrincipal.Percentdisk(unidade: byte): Integer;
@@ -432,8 +557,14 @@ begin
   if FCaptionBase <> '' then Exit;      { ja resolvido na primeira ativacao }
   FCaptionBase := Caption;
 
+  { Semaforo: pinta cinza e liga o timer. A primeira checagem sai no proximo
+    tick (5s), ja em thread - a abertura do menu nao espera por rede. }
+  PintarSemaforo;
+  TimerStatus.Enabled := True;
+
   if not GarantirConexao then Exit;
-  if LerConfig(4) = '2' then
+  FAmbienteNFe := LerConfig(4);
+  if FAmbienteNFe = '2' then
     Caption := FCaptionBase + ' <<< AMBIENTE DE HOMOLOGAÇAO >>>';
 end;
 

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, jpeg, ExtCtrls, rtflabel;
+  Dialogs, StdCtrls, jpeg, pngimage, ExtCtrls, rtflabel;
 
 type
   TFSplash = class(TForm)

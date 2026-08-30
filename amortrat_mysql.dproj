@@ -107,6 +107,7 @@
 				<Form>frmStatus</Form>
 			</DCCReference>
 			<DCCReference Include="UBCrypt.pas"/>
+			<DCCReference Include="UStatusMonitor.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

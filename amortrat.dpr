@@ -27,6 +27,7 @@ uses
   ULogin in 'ULogin.pas' {FLogin},
   ufrmStatus in 'ufrmStatus.pas' {frmStatus},
   UBCrypt in 'UBCrypt.pas',
+  UStatusMonitor in 'UStatusMonitor.pas',
   Windows,
   SysUtils,
   Variants,
