@@ -71,3 +71,6 @@ config.DB
 
 # ─── Regressão: snapshots e relatórios são gerados, não versionados ──────────
 regressao/resultados/
+
+# ─── XMLs de retorno da SEFAZ (gerados em runtime) ──────────────────────────
+Docs/

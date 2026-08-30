@@ -378,7 +378,15 @@ begin
         EACBrXmlException('Nao foi possivel carregar a biblioteca LibXml2').
         Ha um problema real de DLLs x86/x64 misturadas no diretorio do
         executavel - ver secao 7.5 do HANDOFF. }
-      ACBr.Configuracoes.Arquivos.Salvar     := False;
+      { Sao TRES flags diferentes e todas importam aqui:
+          WebServices.Salvar -> grava o XML de ida/volta de CADA consulta.
+                                E o que enchia Docs\*-ped-sta.xml e *-sta.xml
+                                a cada 5 minutos.
+          Arquivos.Salvar    -> grava os documentos (NFe) gerados
+          Arquivos.SalvarEvento -> grava eventos
+        O monitor nao produz documento nenhum: nao deve deixar rastro em disco. }
+      ACBr.Configuracoes.WebServices.Salvar    := False;
+      ACBr.Configuracoes.Arquivos.Salvar       := False;
       ACBr.Configuracoes.Arquivos.SalvarEvento := False;
 
       UF := ACBr.Configuracoes.WebServices.UF;
