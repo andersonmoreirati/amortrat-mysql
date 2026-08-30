@@ -68,3 +68,6 @@ Certificado Digital (backup)/
 PDXRBLD.INI
 PDXRBLD.LOG
 config.DB
+
+# ─── Regressão: snapshots e relatórios são gerados, não versionados ──────────
+regressao/resultados/

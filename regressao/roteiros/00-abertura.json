@@ -1,0 +1,17 @@
+{
+  "nome": "00-abertura",
+  "descricao": "Roteiro minimo de fumaca: abre o sistema, faz login e captura o menu principal. Serve para calibrar as classes de janela antes de escrever os roteiros de verdade.",
+  "passos": [
+    { "acao": "aguardar-janela", "classe": "TFLogin", "timeout": 60 },
+    { "acao": "snapshot", "nome": "01-login" },
+
+    { "acao": "escrever", "classe": "TEdit", "indice": 0, "valor": "$USUARIO" },
+    { "acao": "escrever", "classe": "TEdit", "indice": 1, "valor": "$SENHA" },
+    { "acao": "snapshot", "nome": "02-login-preenchido" },
+
+    { "acao": "clicar", "classe": "TIAeverButton", "indice": 0 },
+    { "acao": "aguardar-janela", "classe": "TFPrincipal", "timeout": 60 },
+    { "acao": "aguardar-ocioso", "timeout": 60 },
+    { "acao": "snapshot", "nome": "03-menu-principal" }
+  ]
+}
