@@ -5076,6 +5076,7 @@ object FNf: TFNf
   OnActivate = FormActivate
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
   object G1: TGroupBox
@@ -6508,22 +6509,18 @@ object FNf: TFNf
       OnExit = EClienteExit
       OnKeyPress = EClienteKeyPress
     end
-    object EFantasia: TRxLookupEdit
+    object EFantasia: TComboBox
       Left = 202
       Top = 98
       Width = 363
       Height = 21
-      LookupDisplay = 'FANTASIA'
-      LookupDisplayIndex = 1
-      LookupField = 'FANTASIA'
-      LookupSource = Modulo.DSClientes
-      PopupOnlyLocate = False
-      OEMConvert = True
+      Style = csDropDown
+      AutoDropDown = True
+      ItemHeight = 13
       TabOrder = 13
-      OnCloseUp = EFantasiaCloseUp
+      OnChange = EFantasiaChange
       OnEnter = EFantasiaEnter
       OnExit = EFantasiaExit
-      OnKeyUp = EFantasiaKeyUp
     end
     object Panel5: TPanel
       Left = 128
@@ -10977,150 +10974,17 @@ object FNf: TFNf
       ShowFocusRGN = False
     end
   end
-  object QOs: TRxQuery
-    DatabaseName = 'amortrat'
-    SQL.Strings = (
-      'select * from Os')
-    Macros = <>
-    Left = 600
-    Top = 312
-    object QOsCODIGO: TStringField
-      FieldName = 'CODIGO'
-      Origin = 'AMORTRAT."os.DB".CODIGO'
-      Size = 7
-    end
-    object QOsPROCESSO: TStringField
-      FieldName = 'PROCESSO'
-      Origin = 'AMORTRAT."os.DB".PROCESSO'
-      Size = 3
-    end
-    object QOsPECA: TStringField
-      FieldName = 'PECA'
-      Origin = 'AMORTRAT."os.DB".PECA'
-      Size = 2
-    end
-    object QOsCLIENTE: TStringField
-      FieldName = 'CLIENTE'
-      Origin = 'AMORTRAT."os.DB".CLIENTE'
-      Size = 4
-    end
-    object QOsNOTA: TStringField
-      FieldName = 'NOTA'
-      Origin = 'AMORTRAT."os.DB".NOTA'
-      Size = 10
-    end
-    object QOsDATA: TDateField
-      FieldName = 'DATA'
-      Origin = 'AMORTRAT."os.DB".DATA'
-    end
-    object QOsQUANTIDADE: TFloatField
-      FieldName = 'QUANTIDADE'
-      Origin = 'AMORTRAT."os.DB".QUANTIDADE'
-    end
-    object QOsEMBALAGEM: TStringField
-      FieldName = 'EMBALAGEM'
-      Origin = 'AMORTRAT."os.DB".EMBALAGEM'
-    end
-    object QOsPESO: TFloatField
-      FieldName = 'PESO'
-      Origin = 'AMORTRAT."os.DB".PESO'
-    end
-    object QOsOBS: TStringField
-      FieldName = 'OBS'
-      Origin = 'AMORTRAT."os.DB".OBS'
-      Size = 50
-    end
-    object QOsFINALIZADA: TBooleanField
-      FieldName = 'FINALIZADA'
-      Origin = 'AMORTRAT."os.DB".FINALIZADA'
-    end
-    object QOsLOTE: TStringField
-      FieldName = 'LOTE'
-      Origin = 'AMORTRAT."Os.DB".LOTE'
-      Size = 36
-    end
+  object QOs: TZQuery
+    Left = 680
+    Top = 8
   end
-  object QOS_Fin: TRxQuery
-    DatabaseName = 'amortrat'
-    SQL.Strings = (
-      'Select * from OS_Finalizados')
-    Macros = <>
-    Left = 568
-    Top = 312
-    object QOS_FinCODIGO: TStringField
-      FieldName = 'CODIGO'
-      Origin = 'AMORTRAT."os_finalizados.DB".CODIGO'
-      Size = 7
-    end
-    object QOS_FinNOTA: TStringField
-      FieldName = 'NOTA'
-      Origin = 'AMORTRAT."os_finalizados.DB".NOTA'
-      Size = 10
-    end
-    object QOS_FinDATA_FIM: TDateField
-      FieldName = 'DATA_FIM'
-      Origin = 'AMORTRAT."os_finalizados.DB".DATA_FIM'
-    end
-    object QOS_FinVALOR: TCurrencyField
-      FieldName = 'VALOR'
-      Origin = 'AMORTRAT."os_finalizados.DB".VALOR'
-    end
+  object QOS_Fin: TZQuery
+    Left = 680
+    Top = 40
   end
-  object QPecas: TRxQuery
-    DatabaseName = 'amortrat'
-    SQL.Strings = (
-      'select * from PEcas')
-    Macros = <>
-    Left = 624
-    Top = 312
-    object QPecasCOD_CLI: TStringField
-      FieldName = 'COD_CLI'
-      Origin = 'AMORTRAT."PEcas.DB".COD_CLI'
-      Size = 4
-    end
-    object QPecasCODIGO: TStringField
-      FieldName = 'CODIGO'
-      Origin = 'AMORTRAT."PEcas.DB".CODIGO'
-      Size = 2
-    end
-    object QPecasCOD_PROC: TStringField
-      FieldName = 'COD_PROC'
-      Origin = 'AMORTRAT."PEcas.DB".COD_PROC'
-      Size = 3
-    end
-    object QPecasDESCRICAO: TStringField
-      FieldName = 'DESCRICAO'
-      Origin = 'AMORTRAT."PEcas.DB".DESCRICAO'
-      Size = 30
-    end
-    object QPecasMATERIAL: TStringField
-      FieldName = 'MATERIAL'
-      Origin = 'AMORTRAT."PEcas.DB".MATERIAL'
-    end
-    object QPecasPRECO: TCurrencyField
-      FieldName = 'PRECO'
-      Origin = 'AMORTRAT."PEcas.DB".PRECO'
-    end
-    object QPecasDUREZA: TStringField
-      FieldName = 'DUREZA'
-      Origin = 'AMORTRAT."PEcas.DB".DUREZA'
-      Size = 10
-    end
-    object QPecasOBS: TStringField
-      FieldName = 'OBS'
-      Origin = 'AMORTRAT."PEcas.DB".OBS'
-      Size = 30
-    end
-    object QPecasCOD_PECA_CLI: TStringField
-      FieldName = 'COD_PECA_CLI'
-      Origin = 'AMORTRAT."PEcas.DB".COD_PECA_CLI'
-      Size = 30
-    end
-    object QPecasFIGURA: TStringField
-      FieldName = 'FIGURA'
-      Origin = 'AMORTRAT."PEcas.DB".FIGURA'
-      Size = 100
-    end
+  object QPecas: TZQuery
+    Left = 680
+    Top = 72
   end
   object TabEnter1: TTabEnter
     ClassNotAffected.Strings = (
@@ -11157,144 +11021,21 @@ object FNf: TFNf
     Left = 491
     Top = 345
   end
-  object QNF_Ref: TRxQuery
-    DatabaseName = 'amortrat'
-    SQL.Strings = (
-      'select * from NF_Ref')
-    Macros = <>
-    Left = 672
-    Top = 312
-    object QNF_RefCOD_NF: TStringField
-      FieldName = 'COD_NF'
-      Origin = 'AMORTRAT."NF_Ref.DB".COD_NF'
-      Size = 6
-    end
-    object QNF_RefCOD_NF_CLIENTE: TStringField
-      FieldName = 'COD_NF_CLIENTE'
-      Origin = 'AMORTRAT."NF_Ref.DB".COD_NF_CLIENTE'
-      Size = 44
-    end
-    object QNF_RefDATA_NF_CLIENTE: TDateField
-      FieldName = 'DATA_NF_CLIENTE'
-      Origin = 'AMORTRAT."NF_Ref.DB".DATA_NF_CLIENTE'
-    end
-    object QNF_RefVALOR_NF_CLIENTE: TCurrencyField
-      FieldName = 'VALOR_NF_CLIENTE'
-      Origin = 'AMORTRAT."NF_Ref.DB".VALOR_NF_CLIENTE'
-    end
-    object QNF_RefFLAG_NFE: TStringField
-      FieldName = 'FLAG_NFE'
-      Origin = 'AMORTRAT."NF_Ref.DB".FLAG_NFE'
-      Size = 1
-    end
+  object QNF_Ref: TZQuery
+    Left = 680
+    Top = 104
   end
-  object QNF_Itens: TRxQuery
-    DatabaseName = 'amortrat'
-    SQL.Strings = (
-      'select * from NF_Itens')
-    Macros = <>
-    Left = 696
-    Top = 312
-    object QNF_ItensCOD_NF: TStringField
-      FieldName = 'COD_NF'
-      Origin = 'AMORTRAT."NF_Itens.DB".COD_NF'
-      Size = 6
-    end
-    object QNF_ItensCOD_OS: TStringField
-      FieldName = 'COD_OS'
-      Origin = 'AMORTRAT."NF_Itens.DB".COD_OS'
-      Size = 8
-    end
-    object QNF_ItensCODIGO: TStringField
-      FieldName = 'CODIGO'
-      Origin = 'AMORTRAT."NF_Itens.DB".CODIGO'
-      Size = 10
-    end
-    object QNF_ItensDESCRICAO: TStringField
-      FieldName = 'DESCRICAO'
-      Origin = 'AMORTRAT."NF_Itens.DB".DESCRICAO'
-      Size = 200
-    end
-    object QNF_ItensCFOP: TStringField
-      FieldName = 'CFOP'
-      Origin = 'AMORTRAT."NF_Itens.DB".CFOP'
-      Size = 10
-    end
-    object QNF_ItensCST: TStringField
-      FieldName = 'CST'
-      Origin = 'AMORTRAT."NF_Itens.DB".CST'
-      Size = 3
-    end
-    object QNF_ItensUNIDADE: TStringField
-      FieldName = 'UNIDADE'
-      Origin = 'AMORTRAT."NF_Itens.DB".UNIDADE'
-      Size = 10
-    end
-    object QNF_ItensPRECO_TOTAL: TCurrencyField
-      FieldName = 'PRECO_TOTAL'
-      Origin = 'AMORTRAT."NF_Itens.DB".PRECO_TOTAL'
-    end
-    object QNF_ItensNCM: TStringField
-      FieldName = 'NCM'
-      Origin = 'AMORTRAT."NF_Itens.DB".NCM'
-    end
-    object QNF_ItensCEST: TStringField
-      FieldName = 'CEST'
-      Origin = 'AMORTRAT."NF_Itens.DB".CEST'
-    end
-    object QNF_ItensPRECO_UNITARIO: TFloatField
-      FieldName = 'PRECO_UNITARIO'
-      Origin = 'AMORTRAT."NF_Itens.DB".PRECO_UNITARIO'
-    end
-    object QNF_ItensQUANTIDADE: TFloatField
-      FieldName = 'QUANTIDADE'
-      Origin = 'AMORTRAT."NF_Itens.DB".QUANTIDADE'
-    end
+  object QNF_Itens: TZQuery
+    Left = 680
+    Top = 136
   end
-  object QNF_Config: TRxQuery
-    DatabaseName = 'amortrat'
-    SQL.Strings = (
-      'select * from Config')
-    Macros = <>
-    Left = 696
-    Top = 344
-    object QNF_ConfigCOD_CONFIG: TIntegerField
-      FieldName = 'COD_CONFIG'
-      Origin = 'AMORTRAT."Config.DB".COD_CONFIG'
-    end
-    object QNF_ConfigDSC_CONFIG: TStringField
-      FieldName = 'DSC_CONFIG'
-      Origin = 'AMORTRAT."Config.DB".DSC_CONFIG'
-      Size = 255
-    end
-    object QNF_ConfigVLR_CONFIG: TStringField
-      FieldName = 'VLR_CONFIG'
-      Origin = 'AMORTRAT."Config.DB".VLR_CONFIG'
-      Size = 255
-    end
+  object QNF_Config: TZQuery
+    Left = 680
+    Top = 168
   end
-  object QEMail: TRxQuery
-    DatabaseName = 'Amortrat'
-    SQL.Strings = (
-      'select * from email')
-    Macros = <>
-    Left = 656
-    Top = 344
-    object QEMailCOD_CLIENTE: TStringField
-      FieldName = 'COD_CLIENTE'
-      Origin = 'AMORTRAT."email.DB".COD_CLIENTE'
-      Size = 4
-    end
-    object QEMailEMAIL: TStringField
-      FieldName = 'EMAIL'
-      Origin = 'AMORTRAT."email.DB".EMAIL'
-      Size = 255
-    end
-    object QEMailFLG_CQ: TStringField
-      FieldName = 'FLG_CQ'
-      Origin = 'AMORTRAT."email.DB".FLG_CQ'
-      Size = 1
-    end
+  object QEMail: TZQuery
+    Left = 680
+    Top = 200
   end
   object ACBrNFeDANFeRL1: TACBrNFeDANFeRL
     Sistema = 'SIA - Sistema Informatizado Amortrat 2016'
@@ -11333,39 +11074,32 @@ object FNf: TFNf
     Left = 432
     Top = 320
   end
-  object QNCM: TRxQuery
-    DatabaseName = 'amortrat'
-    SQL.Strings = (
-      
-        'select i.codigo, i.ncm ncm, i.preco_unitario precoUni, o.data fr' +
-        'om nf n, nf_itens i, os o, clientes c, pecas p'
-      'where n.codigo = i.cod_nf'
-      'and i.cod_os = o.codigo'
-      'and o.cliente = c.codigo'
-      'and o.cliente = p.cod_cli'
-      'and o.peca = p.codigo'
-      'and i.ncm is not null'
-      'and o.peca = '#39'186'#39
-      'and c.codigo = '#39'0024'#39
-      'order by o.data desc')
-    Macros = <>
+  object QNCM: TZQuery
     Left = 680
-    Top = 280
-    object QNCMncm: TStringField
-      FieldName = 'ncm'
-      Origin = 'AMORTRAT."nf_itens.DB".NCM'
-    end
-    object QNCMprecoUni: TFloatField
-      FieldName = 'precoUni'
-      Origin = 'AMORTRAT."nf_itens.DB".PRECO_UNITARIO'
-    end
-    object QNCMdata: TDateField
-      FieldName = 'data'
-      Origin = 'AMORTRAT."os.DB".DATA'
-    end
-    object QNCMcodigo: TStringField
-      FieldName = 'codigo'
-      Origin = 'AMORTRAT."nf_itens.DB".CODIGO'
-    end
+    Top = 232
+  end
+  object QNf: TZQuery
+    Left = 744
+    Top = 8
+  end
+  object QNfCmd: TZQuery
+    Left = 744
+    Top = 40
+  end
+  object QNfItensCmd: TZQuery
+    Left = 744
+    Top = 72
+  end
+  object QNfRefCmd: TZQuery
+    Left = 744
+    Top = 104
+  end
+  object QCli: TZQuery
+    Left = 744
+    Top = 136
+  end
+  object QCfg: TZQuery
+    Left = 744
+    Top = 168
   end
 end

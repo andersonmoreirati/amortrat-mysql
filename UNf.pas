@@ -5,8 +5,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, IAeverButton, ExtCtrls, Mask, RxLookup,
-  DBCtrls, Grids, BaseGrid, AdvGrid, DB, DBTables, RxQuery,
+  Dialogs, StdCtrls, IAeverButton, ExtCtrls, Mask,
+  DBCtrls, Grids, BaseGrid, AdvGrid, DB, ZDataset,
   XBaloon, mdTabEnter, jpeg, Math,
  // ACBrNFeDANFEClass,
   ACBrNFe, pcnConversao, ACBrUtil, ComCtrls, OleCtrls, SHDocVw, RXCtrls,
@@ -21,24 +21,9 @@ type
     G2: TGroupBox;
     BTSair: TIAeverButton;
     BTImprimir: TIAeverButton;
-    QOs: TRxQuery;
-    QOsCODIGO: TStringField;
-    QOsPROCESSO: TStringField;
-    QOsPECA: TStringField;
-    QOsCLIENTE: TStringField;
-    QOsNOTA: TStringField;
-    QOsDATA: TDateField;
-    QOsQUANTIDADE: TFloatField;
-    QOsEMBALAGEM: TStringField;
-    QOsPESO: TFloatField;
-    QOsOBS: TStringField;
-    QOsFINALIZADA: TBooleanField;
-    QOS_Fin: TRxQuery;
-    QOS_FinCODIGO: TStringField;
-    QOS_FinNOTA: TStringField;
-    QOS_FinDATA_FIM: TDateField;
-    QOS_FinVALOR: TCurrencyField;
-    QPecas: TRxQuery;
+    QOs: TZQuery;
+    QOS_Fin: TZQuery;
+    QPecas: TZQuery;
     G1: TGroupBox;
     Label1: TLabel;
     Label9: TLabel;
@@ -67,19 +52,12 @@ type
     GroupBox1: TGroupBox;
     OpEnt: TRadioButton;
     OpS: TRadioButton;
-    QPecasCOD_CLI: TStringField;
-    QPecasCODIGO: TStringField;
-    QPecasCOD_PROC: TStringField;
-    QPecasDESCRICAO: TStringField;
-    QPecasMATERIAL: TStringField;
-    QPecasPRECO: TCurrencyField;
-    QPecasDUREZA: TStringField;
     GroupBox4: TGroupBox;
     OpTot: TRadioButton;
     OpPar: TRadioButton;
     Label13: TLabel;
     ECliente: TEdit;
-    EFantasia: TRxLookupEdit;
+    EFantasia: TComboBox;
     Panel5: TPanel;
     Panel6: TPanel;
     ECodigo: TEdit;
@@ -100,16 +78,13 @@ type
     BTadd: TIAeverButton;
     ACBrNFe1: TACBrNFe;
     BTDeleteRow: TIAeverButton;
-    QNF_Ref: TRxQuery;
-    QNF_Itens: TRxQuery;
+    QNF_Ref: TZQuery;
+    QNF_Itens: TZQuery;
     Clink: TLabel;
     Label21: TLabel;
     EChNfe: TEdit;
     CChNfe: TLabel;
-    QNF_Config: TRxQuery;
-    QNF_ConfigCOD_CONFIG: TIntegerField;
-    QNF_ConfigDSC_CONFIG: TStringField;
-    QNF_ConfigVLR_CONFIG: TStringField;
+    QNF_Config: TZQuery;
     BTCancelar: TIAeverButton;
     lbNaoEnviada: TLabel;
     BTEnviar: TIAeverButton;
@@ -127,14 +102,7 @@ type
     Label11: TLabel;
     Lvalor: TLabel;
     BTNFCliente: TIAeverButton;
-    QNF_RefCOD_NF: TStringField;
-    QNF_RefCOD_NF_CLIENTE: TStringField;
-    QNF_RefDATA_NF_CLIENTE: TDateField;
-    QNF_RefVALOR_NF_CLIENTE: TCurrencyField;
-    QNF_RefFLAG_NFE: TStringField;
-    QEMail: TRxQuery;
-    QEMailCOD_CLIENTE: TStringField;
-    QEMailEMAIL: TStringField;
+    QEMail: TZQuery;
     ECFOPRetorno: TEdit;
     Label20: TLabel;
     ECST: TEdit;
@@ -143,18 +111,6 @@ type
     Label23: TLabel;
     Label24: TLabel;
     ETotalBenef: TCurrencyEdit;
-    QNF_ItensCOD_NF: TStringField;
-    QNF_ItensCOD_OS: TStringField;
-    QNF_ItensCODIGO: TStringField;
-    QNF_ItensDESCRICAO: TStringField;
-    QNF_ItensCFOP: TStringField;
-    QNF_ItensCST: TStringField;
-    QNF_ItensUNIDADE: TStringField;
-    QNF_ItensPRECO_TOTAL: TCurrencyField;
-    QNF_ItensNCM: TStringField;
-    QEMailFLG_CQ: TStringField;
-    QPecasOBS: TStringField;
-    QPecasCOD_PECA_CLI: TStringField;
     EDuplicata: TDateEdit;
     Label25: TLabel;
     Image1: TImage;
@@ -176,23 +132,29 @@ type
     OpNormal: TRadioButton;
     OpDevolucao: TRadioButton;
     Eicms: TCurrencyEdit;
-    QOsLOTE: TStringField;
     ACBrNFeDANFeRL1: TACBrNFeDANFeRL;
     ACBrMail1: TACBrMail;
-    QNF_ItensCEST: TStringField;
     BTCartaCorrecao: TIAeverButton;
     GroupBox5: TGroupBox;
     Opt30: TCheckBox;
     Opt45: TCheckBox;
     Opt60: TCheckBox;
-    QPecasFIGURA: TStringField;
-    QNF_ItensPRECO_UNITARIO: TFloatField;
-    QNF_ItensQUANTIDADE: TFloatField;
-    QNCM: TRxQuery;
-    QNCMncm: TStringField;
-    QNCMprecoUni: TFloatField;
-    QNCMdata: TDateField;
-    QNCMcodigo: TStringField;
+    QNCM: TZQuery;
+    { Datasets locais que substituem os TTable BDE do UModulo. O UModulo segue
+      BDE enquanto houver form nao migrado, entao o UNf nao pode depender dele
+      (mesmo criterio adotado no UOS e no principal).
+        QNf         -> le a NF corrente            (era Modulo.TBNf)
+        QNfCmd      -> INSERT/UPDATE/DELETE tb_nf
+        QNfItensCmd -> comandos em tb_nf_itens     (era Modulo.TBNf_Itens)
+        QNfRefCmd   -> comandos em tb_nf_ref       (era Modulo.TBNf_Ref)
+        QCli        -> le cliente / emitente       (era Modulo.TBClientes)
+        QCfg        -> le e grava tb_config        (era Modulo.TBConfig) }
+    QNf: TZQuery;
+    QNfCmd: TZQuery;
+    QNfItensCmd: TZQuery;
+    QNfRefCmd: TZQuery;
+    QCli: TZQuery;
+    QCfg: TZQuery;
 
     procedure BTSairClick(Sender: TObject);
     procedure FormRefresh(Sender: TObject);
@@ -231,11 +193,9 @@ type
     procedure EClienteEnter(Sender: TObject);
     procedure EClienteExit(Sender: TObject);
     procedure EClienteKeyPress(Sender: TObject; var Key: Char);
-    procedure EFantasiaCloseUp(Sender: TObject);
+    procedure EFantasiaChange(Sender: TObject);
     procedure EFantasiaEnter(Sender: TObject);
     procedure EFantasiaExit(Sender: TObject);
-    procedure EFantasiaKeyUp(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure ECodigoKeyPress(Sender: TObject; var Key: Char);
     procedure ECodigoEnter(Sender: TObject);
     procedure ECodigoExit(Sender: TObject);
@@ -260,6 +220,7 @@ type
     procedure BTMaisClick(Sender: TObject);
     procedure BTVoltarClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormDestroy(Sender: TObject);
     procedure BTaddClick(Sender: TObject);
     procedure EicmsEnter(Sender: TObject);
     procedure EicmsExit(Sender: TObject);
@@ -304,6 +265,21 @@ type
 
 
   private
+    { campos ANTES dos metodos - armadilha #3 }
+    FClientesCod: TStringList;   { ItemIndex do EFantasia -> CODIGO do cliente }
+    FCodigoReservado: string;    { PK pre-reservada em tb_nf, para liberar no Close }
+    function  GarantirConexao: Boolean;
+    function  LerConfig(CodConfig: Integer): string;
+    procedure GravarConfig(CodConfig: Integer; const Valor: string);
+    function  ProximoCodigoNf: string;
+    function  ReservarCodigoNf(var Codigo: string): Boolean;
+    procedure LiberarCodigoReservado;
+    procedure AtualizarFlagNf(const CodNf, Flag: string);
+    procedure AtualizarNfEnviada(const CodNf, ChaveNfe, PathNfe: string);
+    function  LerCampoNf(const CodNf, Campo: string): string;
+    function  CarregarCliente(const CodCliente: string): Boolean;
+    procedure CarregarNf(const CodNf: string);
+    procedure CarregarClientesCombo;
     procedure Limpar;
     procedure Habilitar;
     procedure Desabilitar;
@@ -339,6 +315,260 @@ uses UModulo, URelarNF, UOS, ufrmStatus,
   pcnConversaoNFe,
   ACBrNFeNotasFiscais;
 {$R *.dfm}
+
+// ---------------------------------------------------------------------------
+// Infraestrutura MySQL (substitui os TTable BDE do UModulo)
+// ---------------------------------------------------------------------------
+
+function TFNf.GarantirConexao: Boolean;
+{ Os TZQuery vivem no DFM, mas Modulo.ZConexao e criado em runtime e nao existe
+  em design time (secao 4.1 do HANDOFF). }
+begin
+  Result := False;
+  if (Modulo = nil) or (Modulo.ZConexao = nil) then Exit;
+  if not Modulo.ZConexao.Connected then
+    try
+      Modulo.ZConexao.Connect;
+    except
+      on E: Exception do
+      begin
+        Application.MessageBox(pchar('Erro de conexao: ' + E.Message),
+          pchar('ERRO'), MB_OK + MB_IconError);
+        Exit;
+      end;
+    end;
+
+  QOs.Connection          := Modulo.ZConexao;
+  QOS_Fin.Connection      := Modulo.ZConexao;
+  QPecas.Connection       := Modulo.ZConexao;
+  QNF_Ref.Connection      := Modulo.ZConexao;
+  QNF_Itens.Connection    := Modulo.ZConexao;
+  QNF_Config.Connection   := Modulo.ZConexao;
+  QEMail.Connection       := Modulo.ZConexao;
+  QNCM.Connection         := Modulo.ZConexao;
+  QNf.Connection          := Modulo.ZConexao;
+  QNfCmd.Connection       := Modulo.ZConexao;
+  QNfItensCmd.Connection  := Modulo.ZConexao;
+  QNfRefCmd.Connection    := Modulo.ZConexao;
+  QCli.Connection         := Modulo.ZConexao;
+  QCfg.Connection         := Modulo.ZConexao;
+  Result := True;
+end;
+
+function TFNf.LerConfig(CodConfig: Integer): string;
+{ Substitui Modulo.TBConfig.FindKey([...]) + GotoKey + TBConfigVLR_CONFIG. }
+begin
+  Result := '';
+  if not GarantirConexao then Exit;
+  QCfg.Close;
+  QCfg.SQL.Text := 'SELECT VLR_CONFIG FROM tb_config WHERE COD_CONFIG = :pCod';
+  QCfg.ParamByName('pCod').AsInteger := CodConfig;
+  try
+    QCfg.Open;
+    if not QCfg.IsEmpty then
+      Result := QCfg.FieldByName('VLR_CONFIG').AsString;
+  finally
+    QCfg.Close;
+  end;
+end;
+
+procedure TFNf.GravarConfig(CodConfig: Integer; const Valor: string);
+{ Substitui TBConfig.FindKey + Edit + Post. So atualiza registro existente,
+  como fazia o FindKey/GotoKey (que nao inseria quando nao achava). }
+begin
+  if not GarantirConexao then Exit;
+  QCfg.Close;
+  QCfg.SQL.Text := 'UPDATE tb_config SET VLR_CONFIG = :pVal WHERE COD_CONFIG = :pCod';
+  QCfg.ParamByName('pVal').AsString  := Valor;
+  QCfg.ParamByName('pCod').AsInteger := CodConfig;
+  QCfg.ExecSQL;
+end;
+
+function TFNf.ProximoCodigoNf: string;
+{ Era TBNf.Last + TBNfCODIGO.AsInteger + 1 (o BDE navegava a tabela inteira).
+  tb_nf.CODIGO e varchar(6) puramente numerico com zeros a esquerda
+  ('000001'..'027660'), entao o CAST direto e seguro - diferente de tb_os,
+  cuja chave e 'NNNNNN/AA' (secao 6.1 do HANDOFF).
+  RetZero preserva os 6 digitos: inttostr sozinho devolveria '27661'. }
+var Prox: Integer;
+begin
+  Result := '000001';
+  if not GarantirConexao then Exit;
+  QNf.Close;
+  QNf.SQL.Text := 'SELECT COALESCE(MAX(CAST(CODIGO AS UNSIGNED)), 0) AS ULTIMO FROM tb_nf';
+  QNf.Open;
+  try
+    Prox := QNf.FieldByName('ULTIMO').AsInteger + 1;
+    Result := Modulo.RetZero(inttostr(Prox), 6);
+  finally
+    QNf.Close;
+  end;
+end;
+
+function TFNf.ReservarCodigoNf(var Codigo: string): Boolean;
+{ Pre-reserva de codigo (secao 4.4 do HANDOFF). O Append+Post imediato do BDE
+  nao era sujeira: garantia que dois operadores nao emitissem a mesma NF.
+  Aqui o INSERT grava so a PK; se outro posto tiver pego o numero no intervalo,
+  o MySQL devolve 1062 (Duplicate entry), pegamos o proximo e AVISAMOS. }
+var Tentativas: Integer;
+    Original: string;
+begin
+  Result := False;
+  if not GarantirConexao then Exit;
+  Original   := Codigo;
+  Tentativas := 0;
+
+  while Tentativas < 20 do
+  begin
+    QNfCmd.Close;
+    QNfCmd.SQL.Text := 'INSERT INTO tb_nf (CODIGO) VALUES (:pCod)';
+    QNfCmd.ParamByName('pCod').AsString := Codigo;
+    try
+      QNfCmd.ExecSQL;
+      FCodigoReservado := Codigo;
+      Result := True;
+      if Codigo <> Original then
+        Application.MessageBox(PChar(
+          'O numero ' + Original + ' foi usado por outro posto enquanto voce digitava.' + #13#10 +
+          'Esta nota passou a ser a de numero ' + Codigo + '.'),
+          'AVISO', MB_OK + MB_IconInformation);
+      Exit;
+    except
+      on E: Exception do
+      begin
+        if Pos('1062', E.Message) + Pos('Duplicate', E.Message) = 0 then raise;
+        Codigo := ProximoCodigoNf;   { colisao: tenta o proximo }
+        Inc(Tentativas);
+      end;
+    end;
+  end;
+
+  Application.MessageBox('Nao foi possivel reservar um numero de NF.',
+    'ERRO', MB_OK + MB_IconError);
+end;
+
+procedure TFNf.LiberarCodigoReservado;
+{ Apaga o stub se a nota foi abandonada sem preencher. A guarda impede apagar
+  nota real: so remove enquanto o registro estiver vazio.
+  As FK de tb_nf_itens e tb_nf_ref sao ON DELETE CASCADE, entao nao ha o que
+  limpar antes. }
+begin
+  if FCodigoReservado = '' then Exit;
+  if not GarantirConexao then
+  begin
+    FCodigoReservado := '';
+    Exit;
+  end;
+  try
+    QNfCmd.Close;
+    QNfCmd.SQL.Text :=
+      'DELETE FROM tb_nf WHERE CODIGO = :pCod ' +
+      'AND COD_CLI IS NULL AND NATUREZA IS NULL AND VALOR IS NULL';
+    QNfCmd.ParamByName('pCod').AsString := FCodigoReservado;
+    QNfCmd.ExecSQL;
+  except
+    { nota ja preenchida ou em uso: nao e erro, so nao apaga }
+  end;
+  FCodigoReservado := '';
+end;
+
+procedure TFNf.AtualizarFlagNf(const CodNf, Flag: string);
+{ Substitui o par TBNf.FindKey + Edit + TBNFFLG_ENVIADA + Post, repetido em
+  varios pontos do envio, do cancelamento e da recuperacao. }
+begin
+  if not GarantirConexao then Exit;
+  QNfCmd.Close;
+  QNfCmd.SQL.Text := 'UPDATE tb_nf SET FLG_ENVIADA = :pFlag WHERE CODIGO = :pCod';
+  QNfCmd.ParamByName('pFlag').AsString := Flag;
+  QNfCmd.ParamByName('pCod').AsString  := CodNf;
+  QNfCmd.ExecSQL;
+end;
+
+procedure TFNf.AtualizarNfEnviada(const CodNf, ChaveNfe, PathNfe: string);
+{ Grava o retorno da SEFAZ: chave de acesso, caminho do XML e FLG_ENVIADA='S'. }
+begin
+  if not GarantirConexao then Exit;
+  QNfCmd.Close;
+  QNfCmd.SQL.Text :=
+    'UPDATE tb_nf SET COD_NFE = :pChave, PATH_NFE = :pPath, ' +
+    'FLG_ENVIADA = ''S'' WHERE CODIGO = :pCod';
+  QNfCmd.ParamByName('pChave').AsString := ChaveNfe;
+  QNfCmd.ParamByName('pPath').AsString  := PathNfe;
+  QNfCmd.ParamByName('pCod').AsString   := CodNf;
+  QNfCmd.ExecSQL;
+end;
+
+function TFNf.LerCampoNf(const CodNf, Campo: string): string;
+{ Le uma coluna da NF sem deixar dataset aberto. Substitui os pontos em que o
+  codigo lia TBNfPATH_NFE / TBNfCOD_NFE do cursor BDE posicionado. }
+begin
+  Result := '';
+  if not GarantirConexao then Exit;
+  QNf.Close;
+  QNf.SQL.Text := 'SELECT ' + Campo + ' AS V FROM tb_nf WHERE CODIGO = :pCod';
+  QNf.ParamByName('pCod').AsString := CodNf;
+  try
+    QNf.Open;
+    if not QNf.IsEmpty then Result := QNf.FieldByName('V').AsString;
+  finally
+    QNf.Close;
+  end;
+end;
+
+function TFNf.CarregarCliente(const CodCliente: string): Boolean;
+{ Substitui Modulo.TBClientes.FindKey([...]) + GotoKey. Deixa QCli aberto no
+  registro para que os campos sejam lidos por FieldByName logo em seguida. }
+begin
+  Result := False;
+  if not GarantirConexao then Exit;
+  QCli.Close;
+  QCli.SQL.Text :=
+    'SELECT CODIGO, RAZAO, FANTASIA, CNPJ, ENDERECO, NUMERO, BAIRRO, CIDADE, ' +
+    'ESTADO, CEP, INSC_EST, TEL1, TEL2, EMAIL, COD_MUNICIPIO, LT_MINIMO ' +
+    'FROM tb_clientes WHERE CODIGO = :pCod';
+  QCli.ParamByName('pCod').AsString := CodCliente;
+  QCli.Open;
+  Result := not QCli.IsEmpty;
+end;
+
+procedure TFNf.CarregarNf(const CodNf: string);
+{ Substitui Modulo.TBNf.FindKey([...]) + GotoKey. Deixa QNf posicionado. }
+begin
+  if not GarantirConexao then Exit;
+  QNf.Close;
+  QNf.SQL.Text := 'SELECT * FROM tb_nf WHERE CODIGO = :pCod';
+  QNf.ParamByName('pCod').AsString := CodNf;
+  QNf.Open;
+end;
+
+procedure TFNf.CarregarClientesCombo;
+{ EFantasia era TRxLookupEdit sobre Modulo.DSClientes (cursor BDE). O
+  TRxLookupEdit faz cast interno para estruturas do BDE e da Access Violation
+  com dataset ZeosLib, por isso virou TComboBox + TStringList paralela
+  (secao 4.3 do HANDOFF). }
+var Q: TZQuery;
+begin
+  if FClientesCod = nil then FClientesCod := TStringList.Create;
+  FClientesCod.Clear;
+  EFantasia.Items.Clear;
+  if not GarantirConexao then Exit;
+
+  Q := TZQuery.Create(nil);
+  try
+    Q.Connection := Modulo.ZConexao;
+    Q.SQL.Text := 'SELECT CODIGO, FANTASIA FROM tb_clientes ' +
+                  'WHERE FANTASIA IS NOT NULL ORDER BY FANTASIA';
+    Q.Open;
+    while not Q.Eof do
+    begin
+      EFantasia.Items.Add(Q.FieldByName('FANTASIA').AsString);
+      FClientesCod.Add(Q.FieldByName('CODIGO').AsString);
+      Q.Next;
+    end;
+  finally
+    Q.Free;
+  end;
+end;
 
 Function TFNf.MenorDataValida(Ano, Mes, Dia: Word): TDateTime;
 Var
@@ -391,11 +621,19 @@ begin
 end;
 
 procedure TFNf.FormRefresh(Sender: TObject);
+{ Era TBNf.Refresh (recarregava o cursor BDE). No MySQL o equivalente e encerrar
+  a transacao de leitura, para a proxima consulta enxergar dados novos: o InnoDB
+  roda em REPEATABLE READ e o snapshot fica congelado (armadilha #1). }
 begin
-  With Modulo do
-  begin
-    TBNf.Refresh;
-  end;
+  if GarantirConexao then
+    Modulo.NovaLeitura;
+end;
+
+procedure TFNf.FormDestroy(Sender: TObject);
+{ FClientesCod acompanha o EFantasia (ex-TRxLookupEdit) e e criada no
+  CarregarClientesCombo; liberada aqui para nao vazar. }
+begin
+  FreeAndNil(FClientesCod);
 end;
 
 procedure TFNf.Desabilitar;
@@ -524,19 +762,28 @@ var
   Ano, Mes, Dia: Word;
 begin
 
-  With Modulo do
   begin
+    if not GarantirConexao then Exit;
+    Modulo.NovaLeitura;   { snapshot atual: a OS pode ter sido finalizada agora (#1) }
+
+    { Literais entre aspas duplas (sintaxe Paradox) viraram parametros e as
+      tabelas ganharam o prefixo tb_ (armadilha #14). }
     QOS_Fin.close;
     QOS_Fin.SQL.Clear;
-    QOS_Fin.SQL.Text :=
-      'Select * from OS_finalizados where CODIGO = "' + EOs.Text + '"';
+    QOS_Fin.SQL.Text := 'SELECT * FROM tb_os_finalizados WHERE CODIGO = :pCod';
+    QOS_Fin.ParamByName('pCod').AsString := EOs.Text;
     QOS_Fin.Open;
-    If QOS_Fin.RecordCount <= 0 then
+    If QOS_Fin.IsEmpty then
     begin
       Application.MessageBox('OS não encontrada ou não finalizada!',
         'Erro de pesquisa', MB_Ok + MB_IconError);
-      TBOs.FindKey([EOs.Text]);
-      If TBOs.GotoKey then
+      { TBOs.FindKey/GotoKey -> existe a OS (ainda que nao finalizada)? }
+      QOs.close;
+      QOs.SQL.Clear;
+      QOs.SQL.Text := 'SELECT CODIGO FROM tb_os WHERE CODIGO = :pCod';
+      QOs.ParamByName('pCod').AsString := EOs.Text;
+      QOs.Open;
+      If not QOs.IsEmpty then
       begin
         if Application.MessageBox('Deseja finalizar esta OS ?', 'Finalizar OS',
           MB_YESNO + MB_IconQuestion + MB_DEFBUTTON2) = IdYes then
@@ -555,17 +802,19 @@ begin
 
     QOs.close;
     QOs.SQL.Clear;
-    QOs.SQL.Text := 'Select * from Os where CODIGO = "' + EOs.Text + '"';
+    QOs.SQL.Text := 'SELECT * FROM tb_os WHERE CODIGO = :pCod';
+    QOs.ParamByName('pCod').AsString := EOs.Text;
     QOs.Open;
-    Codigo := QOsCLIENTE.Value;
+    Codigo := QOs.FieldByName('CLIENTE').AsString;
     QPecas.close;
     QPecas.SQL.Clear;
     QPecas.SQL.Text :=
-      'Select * from Pecas where COD_CLI = "' + QOsCLIENTE.Text +
-      '" and CODIGO = "' + QOsPECA.Text + '"';
+      'SELECT * FROM tb_pecas WHERE COD_CLI = :pCli AND CODIGO = :pPeca';
+    QPecas.ParamByName('pCli').AsString  := QOs.FieldByName('CLIENTE').AsString;
+    QPecas.ParamByName('pPeca').AsString := QOs.FieldByName('PECA').AsString;
     QPecas.Open;
 
-    If QOsCLIENTE.Text <> ECliente.Text then
+    If QOs.FieldByName('CLIENTE').AsString <> ECliente.Text then
       If Application.MessageBox(
         'Atenção: A OS selecionada possui o cliente diferente da NFe! Deseja realmente adicionar a OS?', 'AVISO', MB_YESNO + MB_IconQuestion + MB_DEFBUTTON2) = IDNo then
       begin
@@ -577,14 +826,14 @@ begin
 
     QNCM.close;
     QNCM.SQL.Clear;
-    QNCM.SQL.Text :=  ' select i.codigo, i.ncm ncm, i.preco_unitario precoUni, o.data from nf_itens i, os o '+
+    QNCM.SQL.Text :=  ' select i.codigo, i.ncm ncm, i.preco_unitario precoUni, o.data from tb_nf_itens i, tb_os o '+
                       ' where  i.cod_os = o.codigo                                                 '+
                       ' and o.peca = :pPeca                                                     '+
                       ' and o.cliente = :pCodigo                                                  '+
-                      ' and extract(YEAR from o.data) >= :pAno order by o.data desc;' ;
+                      ' and extract(YEAR from o.data) >= :pAno order by o.data desc' ;
 
-    QNCM.ParamByName('pPeca').AsString := QPecasCODIGO.Text;
-    QNCM.ParamByName('pCodigo').AsString := QOsCLIENTE.Text;
+    QNCM.ParamByName('pPeca').AsString := QPecas.FieldByName('CODIGO').AsString;
+    QNCM.ParamByName('pCodigo').AsString := QOs.FieldByName('CLIENTE').AsString;
     QNCM.ParamByName('pAno').AsInteger := Ano -1;
 
     QNCM.Prepare;
@@ -592,53 +841,61 @@ begin
 
 
     Grid.AddRow;
-    Grid.Cells[0, item] := QPecasCODIGO.Text;
-    if QOS_FinVALOR.Value <= TBClientesLT_MINIMO.Value then
-      Grid.Cells[1, item] := QPecasDESCRICAO.Text + ' OS:' +
-        QOsCODIGO.AsString + ' - LOTE:' + QOsLOTE.AsString +
+    Grid.Cells[0, item] := QPecas.FieldByName('CODIGO').AsString;
+    { LT_MINIMO e decimal(10,3) e VALOR e decimal(15,4): AsCurrency nos dois
+      lados compara em Currency, como faziam os TCurrencyField do BDE. }
+    if QOS_Fin.FieldByName('VALOR').AsCurrency <= QCli.FieldByName('LT_MINIMO').AsCurrency then
+      Grid.Cells[1, item] := QPecas.FieldByName('DESCRICAO').AsString + ' OS:' +
+        QOs.FieldByName('CODIGO').AsString + ' - LOTE:' + QOs.FieldByName('LOTE').AsString +
         ' - TX LT Min'
     else
 
-    Grid.Cells[1, item] := QPecasDESCRICAO.Text + ' OS:' +
-    QOsCODIGO.AsString + ' - LOTE:' + QOsLOTE.AsString;
-    Grid.Cells[2, item] :=  QNCMncm.Text;
+    Grid.Cells[1, item] := QPecas.FieldByName('DESCRICAO').AsString + ' OS:' +
+    QOs.FieldByName('CODIGO').AsString + ' - LOTE:' + QOs.FieldByName('LOTE').AsString;
+    Grid.Cells[2, item] :=  QNCM.FieldByName('ncm').AsString;
     Grid.Cells[3, item] :=  '';
     Grid.Cells[4, item] := ECFOP.Text;
     Grid.Cells[5, item] := ECST.Text;
-    Grid.Cells[6, item] := FormatFloat('#######0.000', QOsPESO.Value);
+    Grid.Cells[6, item] := FormatFloat('#######0.000', QOs.FieldByName('PESO').AsFloat);
     Grid.Cells[7, item] := 'Kg';
+    { preco unitario = valor / peso. VALOR era TCurrencyField e PESO TFloatField,
+      entao a divisao era Currency/Double: AsCurrency e AsFloat preservam isso. }
     Grid.Cells[8, item] := FormatFloat('#######0.000000000',
-    QOS_FinVALOR.Value / QOsPESO.Value);
-    Grid.Cells[9, item] := FormatFloat('#######0.00', QOS_FinVALOR.Value);
+    QOS_Fin.FieldByName('VALOR').AsCurrency / QOs.FieldByName('PESO').AsFloat);
+    Grid.Cells[9, item] := FormatFloat('#######0.00', QOS_Fin.FieldByName('VALOR').AsCurrency);
     Grid.Cells[10, item] := EOs.Text;
     item := item + 1;
 
     Grid.AddRow;
-    Grid.Cells[0, item] := QNCMCODIGO.Value;
-    Grid.Cells[1, item] := QPecasDESCRICAO.Text + ' - Ref. NF:' +
-    QOsNOTA.AsString;
+    Grid.Cells[0, item] := QNCM.FieldByName('codigo').AsString;
+    Grid.Cells[1, item] := QPecas.FieldByName('DESCRICAO').AsString + ' - Ref. NF:' +
+    QOs.FieldByName('NOTA').AsString;
 
-    Grid.Cells[2, item] :=  QNCMncm.Text;
+    Grid.Cells[2, item] :=  QNCM.FieldByName('ncm').AsString;
     Grid.Cells[3, item] :=  '';
     Grid.Cells[4, item] := ECFOPRetorno.Text;
     Grid.Cells[5, item] := ECSTRetorno.Text;
-    Grid.Cells[6, item] := FormatFloat('#######0.000', QOsPESO.Value);
+    Grid.Cells[6, item] := FormatFloat('#######0.000', QOs.FieldByName('PESO').AsFloat);
 
     if EFantasia.Text = 'FABRIL' then
       Grid.Cells[7, item] := 'Kg'
     else
       Grid.Cells[7, item] := 'Kg';
 
-    Grid.Cells[8, item] := FormatFloat('#######0.00', QNCMPRECOUNI.Value);
-    Grid.Cells[9, item] := FormatFloat('#######0.00', QNCMPRECOUNI.Value * QOsPESO.Value);
+    { precoUni vem de i.preco_unitario (double) e PESO tambem e double:
+      AsFloat nos dois, como eram os TFloatField do BDE. }
+    Grid.Cells[8, item] := FormatFloat('#######0.00', QNCM.FieldByName('precoUni').AsFloat);
+    Grid.Cells[9, item] := FormatFloat('#######0.00',
+      QNCM.FieldByName('precoUni').AsFloat * QOs.FieldByName('PESO').AsFloat);
     Grid.Cells[10, item] := EOs.Text;
 
 
     item := item + 1;
 
-    EPesoL.Value := EPesoL.Value + QOsPESO.Value;
-    ETotal.Value := ETotal.Value + QOS_FinVALOR.Value + (QNCMPRECOUNI.Value * QOsPESO.Value);
-    ETotalBenef.Value := ETotalBenef.Value + QOS_FinVALOR.Value;
+    EPesoL.Value := EPesoL.Value + QOs.FieldByName('PESO').AsFloat;
+    ETotal.Value := ETotal.Value + QOS_Fin.FieldByName('VALOR').AsCurrency +
+      (QNCM.FieldByName('precoUni').AsFloat * QOs.FieldByName('PESO').AsFloat);
+    ETotalBenef.Value := ETotalBenef.Value + QOS_Fin.FieldByName('VALOR').AsCurrency;
 
     end;
 
@@ -664,15 +921,14 @@ begin
   begin
     Limpar;
     // Application.OnActivate := FormRefresh;
-    With Modulo do
+    { TBNf.Last + TBNfCODIGO.AsInteger + 1 -> ProximoCodigoNf (SELECT MAX).
+      tb_nf tem 27 mil linhas: navegar a tabela como o BDE fazia nao e viavel
+      (secao 6.2 do HANDOFF). NovaLeitura garante snapshot atual (#1). }
+    if GarantirConexao then
     begin
-      TBNf.Refresh;
-      TBNf.Last;
-      If TBNf.RecordCount <= 0 then
-        ECodigo.Text := '000001'
-      else
-        ECodigo.Text := inttostr(TBNfCODIGO.AsInteger + 1);
-        ECodigo.SetFocus;
+      Modulo.NovaLeitura;
+      ECodigo.Text := ProximoCodigoNf;
+      ECodigo.SetFocus;
     end;
     Desabilitar;
 
@@ -841,7 +1097,7 @@ begin
     If (tipo = 'alterar') then
     begin
       ACBrNFe1.NotasFiscais.Clear;
-      ACBrNFe1.NotasFiscais.LoadFromFile(TBNfPATH_NFE.Value);
+      ACBrNFe1.NotasFiscais.LoadFromFile(LerCampoNf(ECodigo.Text, 'PATH_NFE'));
       ACBrNFe1.NotasFiscais.Imprimir;
     end;
   end;
@@ -896,31 +1152,27 @@ begin
 end;
 
 procedure TFNf.EClienteChange(Sender: TObject);
+{ TBClientes.FindKey/GotoKey -> CarregarCliente (SELECT ... WHERE CODIGO).
+  O TBPecas.Filter := '' era inerte (Filtered continuava False) e foi removido
+  junto com o TTable BDE. }
 begin
-  with Modulo do
+  if CarregarCliente(Modulo.RetZero(ECliente.Text, 4)) then
   begin
-    TBClientes.FindKey([RetZero(ECliente.Text, 4)]);
-    If TBClientes.GotoKey then
+    EFantasia.Text := QCli.FieldByName('FANTASIA').AsString;
+
+    if QCli.FieldByName('ESTADO').AsString <> 'SP' then
     begin
-      EFantasia.Text := TBClientesFANTASIA.Value;
-
-      if (TBClientesESTADO.Text <> 'SP') then
-      begin
-        ECFOP.Text := '6124';
-        ECFOPRetorno.Text := '6902';
-      end
-      else
-      begin
-        ECFOP.Text := '5124';
-        ECFOPRetorno.Text := '5902';
-      end;
-
-      TBPecas.Filter := '';
+      ECFOP.Text := '6124';
+      ECFOPRetorno.Text := '6902';
     end
     else
-      EFantasia.Text := '';
-  end;
-
+    begin
+      ECFOP.Text := '5124';
+      ECFOPRetorno.Text := '5902';
+    end;
+  end
+  else
+    EFantasia.Text := '';
 end;
 
 procedure TFNf.EClienteEnter(Sender: TObject);
@@ -947,11 +1199,14 @@ begin
     Key := number(Key);
 end;
 
-procedure TFNf.EFantasiaCloseUp(Sender: TObject);
+procedure TFNf.EFantasiaChange(Sender: TObject);
+{ Substitui OnCloseUp + OnKeyUp do antigo TRxLookupEdit: os dois liam o cursor
+  BDE (Modulo.TBClientesCODIGO) apos o lookup mover o registro. Com TComboBox a
+  posicao vem do ItemIndex e o codigo sai da lista paralela (secao 4.3). }
 begin
-  with Modulo do
-    ECliente.Text := TBClientesCODIGO.Value;
-
+  if (EFantasia.ItemIndex >= 0) and (FClientesCod <> nil) and
+     (EFantasia.ItemIndex < FClientesCod.Count) then
+    ECliente.Text := FClientesCod[EFantasia.ItemIndex];
 end;
 
 procedure TFNf.EFantasiaEnter(Sender: TObject);
@@ -970,13 +1225,8 @@ begin
 
 end;
 
-procedure TFNf.EFantasiaKeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  with Modulo do
-    ECliente.Text := TBClientesCODIGO.Value;
-
-end;
+{ EFantasiaKeyUp removido: era a outra metade do lookup BDE e foi absorvido
+  pelo EFantasiaChange acima. }
 
 procedure TFNf.ECodigoKeyPress(Sender: TObject; var Key: Char);
 begin
@@ -1005,11 +1255,12 @@ end;
 procedure TFNf.BTOK2Click(Sender: TObject);
 var
   idx: Integer;
+  codNfAux: string;
 begin
-  with Modulo do
+  codNfAux := ECodigo.Text;
   begin
-
-    TBNf.Refresh;
+    if not GarantirConexao then Exit;
+    Modulo.NovaLeitura;   { snapshot atual antes de decidir gravar x alterar (#1) }
 
     If ECodigo.Text = '' then
     begin
@@ -1021,27 +1272,21 @@ begin
     Limpar;
     ENatureza.SetFocus;
     ENatureza.Color := $00E2F5FE;
-    TBNf.Cancel;
 
-    If TBNf.RecordCount <= 0 then
+    { TBNf.FindKey/GotoKey -> SELECT ... WHERE CODIGO }
+    CarregarNf(ECodigo.Text);
+    If QNf.IsEmpty then
       tipo := 'gravar'
     else
-    begin
-      TBNf.FindKey([ECodigo.Text]);
-      If TBNf.GotoKey then
-        tipo := 'alterar'
-      else
-        tipo := 'gravar';
-    end;
+      tipo := 'alterar';
 
     If (tipo = 'gravar') then
     begin
-      TBNf.Append;
-      TBNf.FieldByName('CODIGO').Value := ECodigo.Text;
-      TBNf.Post;
-      TBNf.First;
-      TBNf.FindKey([ECodigo.Text]);
-      TBNf.Edit;
+      { Pre-reserva: era Append + CODIGO + Post (INSERT so com a PK), para dois
+        operadores nao emitirem a mesma NF. ReservarCodigoNf faz o mesmo e
+        ainda trata a colisao 1062 avisando o usuario (secao 4.4). }
+      if not ReservarCodigoNf(codNfAux) then Exit;
+      ECodigo.Text := codNfAux;      { pode ter mudado por colisao }
       ENatureza.Text := 'RETORNO DE INDUSTRIALIZAÇÃO';
       ECFOP.Text := '5124';
       EDataE.date := now;
@@ -1068,57 +1313,59 @@ begin
 
     If (tipo = 'alterar') then
     begin
-
-      TBNf.Edit;
-      ECliente.Text := TBNfCOD_CLI.Value;
-      EDataE.date := TBNfDATAE.Value;
+      { QNf ja esta aberto e posicionado pelo CarregarNf acima.
+        Campos char(1) (TIPO, TIPO_RETORNO, ...) sao lidos com AsString: no BDE
+        usava-se .Text, que para TStringField devolve o mesmo conteudo.
+        DATAE/DATAS sao 'date' no MySQL -> AsDateTime nao traz hora. }
+      ECliente.Text := QNf.FieldByName('COD_CLI').AsString;
+      EDataE.date := QNf.FieldByName('DATAE').AsDateTime;
       EDuplicata.date := ProximoDiaUtil(EDataE.date + 30);
-      // ETotal.Value := TBNfVALOR.value;
-      ENatureza.Text := TBNfNATUREZA.Value;
-      ECFOP.Text := TBNfCFOP.Value;
-      EDataS.date := TBNfDATAS.Value;
-      if TBNFTIPO.Text = 'S' then
+      // ETotal.Value := QNf.FieldByName('VALOR').AsCurrency;
+      ENatureza.Text := QNf.FieldByName('NATUREZA').AsString;
+      ECFOP.Text := QNf.FieldByName('CFOP').AsString;
+      EDataS.date := QNf.FieldByName('DATAS').AsDateTime;
+      if QNf.FieldByName('TIPO').AsString = 'S' then
         OpS.Checked := true
       else
         OpEnt.Checked := true;
-      if TBNFTIPO_RETORNO.Text = 'T' then
+      if QNf.FieldByName('TIPO_RETORNO').AsString = 'T' then
         OpTot.Checked := true
       else
         OpPar.Checked := true;
 
-      if TBNFTIPO_PAGAMENTO.Text = 'V' then
+      if QNf.FieldByName('TIPO_PAGAMENTO').AsString = 'V' then
         opVista.Checked := true
       else
         opPrazo.Checked := true;
 
-      if TBNfTIPO_EMISSAO.Text = 'N' then
+      if QNf.FieldByName('TIPO_EMISSAO').AsString = 'N' then
         OpNormal.Checked := true
       else
        OpDevolucao.Checked := true;
 
-      if TBNfTIPO_30.Text = 'S' then Opt30.Checked := true else Opt30.Checked := false;
-      if TBNfTIPO_45.Text = 'S' then Opt45.Checked := true else Opt45.Checked := false;
-      if TBNfTIPO_60.Text = 'S' then Opt60.Checked := true else Opt60.Checked := false;
+      if QNf.FieldByName('TIPO_30').AsString = 'S' then Opt30.Checked := true else Opt30.Checked := false;
+      if QNf.FieldByName('TIPO_45').AsString = 'S' then Opt45.Checked := true else Opt45.Checked := false;
+      if QNf.FieldByName('TIPO_60').AsString = 'S' then Opt60.Checked := true else Opt60.Checked := false;
 
-      Eicms.Value := TBNfICMS_BASE.Value;
-      ENome.Text := TBNfNOME_TRANSPORTADORA.Value;
-      EQtd.Text := TBNfQUANTIDADE.AsString;
-      EEsp.Text := TBNfESPECIE.Value;
-      EPesoL.Value := TBNfPESOL.Value;
-      EPesoB.Value := TBNfPESOB.Value;
+      Eicms.Value := QNf.FieldByName('ICMS_BASE').AsCurrency;
+      ENome.Text := QNf.FieldByName('NOME_TRANSPORTADORA').AsString;
+      EQtd.Text := QNf.FieldByName('QUANTIDADE').AsString;
+      EEsp.Text := QNf.FieldByName('ESPECIE').AsString;
+      EPesoL.Value := QNf.FieldByName('PESOL').AsFloat;
+      EPesoB.Value := QNf.FieldByName('PESOB').AsFloat;
       Clink.Visible := true;
       CChNfe.Visible := true;
       EChNfe.Visible := true;
-      EChNfe.Text := TBNfCOD_NFE.Value;
-      Eestado.Text := TBNfUF_PLACA.Value;
-      EPlaca.Text := TBNfPLACA.Value;
+      EChNfe.Text := QNf.FieldByName('COD_NFE').AsString;
+      Eestado.Text := QNf.FieldByName('UF_PLACA').AsString;
+      EPlaca.Text := QNf.FieldByName('PLACA').AsString;
 
-      if TBNFTIPO_FRETE.Text = 'E' then
+      if QNf.FieldByName('TIPO_FRETE').AsString = 'E' then
         OpE.Checked := true
       else
         OpD.Checked := true;
 
-      if TBNFFLG_ENVIADA.Text = 'S' then
+      if QNf.FieldByName('FLG_ENVIADA').AsString = 'S' then
       begin
         lbNaoEnviada.Caption := 'Status: NFe enviada com sucesso!';
         lbNaoEnviada.Font.Color := clNavy;
@@ -1131,7 +1378,7 @@ begin
         BTLimpar.enabled := False;
       end;
 
-      if TBNFFLG_ENVIADA.Text = 'N' then
+      if QNf.FieldByName('FLG_ENVIADA').AsString = 'N' then
       begin
         lbNaoEnviada.Caption := 'Status: NFe não enviada!';
         lbNaoEnviada.Font.Color := clRed;
@@ -1142,7 +1389,7 @@ begin
         BTCancelar.enabled := False;
       end;
 
-      if TBNFFLG_ENVIADA.Text = 'C' then
+      if QNf.FieldByName('FLG_ENVIADA').AsString = 'C' then
       begin
         lbNaoEnviada.Caption := 'Status: NFe CANCELADA!';
         lbNaoEnviada.Font.Color := clRed;
@@ -1155,10 +1402,13 @@ begin
         BTLimpar.enabled := False;
       end;
 
+      { 'NF_ref' -> tb_nf_ref; o literal entre aspas duplas (sintaxe Paradox)
+        virou parametro (armadilha #14). ORDER BY ID mantem a ordem de insercao,
+        que no Paradox vinha da ordem fisica do arquivo. }
       QNF_Ref.close;
       QNF_Ref.SQL.Clear;
-      QNF_Ref.SQL.Text :=
-        'Select * from NF_ref where COD_NF = "' + ECodigo.Text + '"';
+      QNF_Ref.SQL.Text := 'SELECT * FROM tb_nf_ref WHERE COD_NF = :pCod ORDER BY ID';
+      QNF_Ref.ParamByName('pCod').AsString := ECodigo.Text;
       QNF_Ref.Open;
 
       idx := 1;
@@ -1166,51 +1416,60 @@ begin
       If not QNF_Ref.Eof then
         repeat
           GridNF.AddRow;
-          if QNF_RefFLAG_NFE.Value = 'S' then
+          if QNF_Ref.FieldByName('FLAG_NFE').AsString = 'S' then
             GridNF.Cells[0, idx] := 'Sim'
           else
             GridNF.Cells[0, idx] := 'Não';
 
-          GridNF.Cells[1, idx] := QNF_RefCOD_NF_CLIENTE.AsString;
-          GridNF.Cells[2, idx] := QNF_RefDATA_NF_CLIENTE.AsString;
-          GridNF.Cells[3, idx] := QNF_RefVALOR_NF_CLIENTE.AsString;
+          GridNF.Cells[1, idx] := QNF_Ref.FieldByName('COD_NF_CLIENTE').AsString;
+          GridNF.Cells[2, idx] := QNF_Ref.FieldByName('DATA_NF_CLIENTE').AsString;
+          { VALOR_NF_CLIENTE era TCurrencyField, cujo .AsString e FloatToStr do
+            valor. Reproduzido literalmente para a celula manter o mesmo texto
+            (o BTGravar le esta celula de volta com StrToCurr). }
+          GridNF.Cells[3, idx] := FloatToStr(QNF_Ref.FieldByName('VALOR_NF_CLIENTE').AsFloat);
           idx := idx + 1;
 
           QNF_Ref.Next
         until QNF_Ref.Eof;
 
-        QNF_Itens.close;
+      QNF_Itens.close;
       QNF_Itens.SQL.Clear;
-      QNF_Itens.SQL.Text :=
-        'Select * from NF_Itens where COD_NF = "' + ECodigo.Text + '"';
+      QNF_Itens.SQL.Text := 'SELECT * FROM tb_nf_itens WHERE COD_NF = :pCod ORDER BY ID';
+      QNF_Itens.ParamByName('pCod').AsString := ECodigo.Text;
       QNF_Itens.Open;
 
       item := 1;
       If not QNF_Itens.Eof then
         repeat
           Grid.AddRow;
-          Grid.Cells[0, item] := QNF_ItensCODIGO.AsString;
-          Grid.Cells[1, item] := QNF_ItensDESCRICAO.AsString;
-          Grid.Cells[2, item] := QNF_ItensNCM.AsString;
-          Grid.Cells[3, item] := QNF_ItensCEST.AsString;
-          Grid.Cells[4, item] := QNF_ItensCFOP.AsString;
-          Grid.Cells[5, item] := QNF_ItensCST.AsString;
+          Grid.Cells[0, item] := QNF_Itens.FieldByName('CODIGO').AsString;
+          Grid.Cells[1, item] := QNF_Itens.FieldByName('DESCRICAO').AsString;
+          Grid.Cells[2, item] := QNF_Itens.FieldByName('NCM').AsString;
+          Grid.Cells[3, item] := QNF_Itens.FieldByName('CEST').AsString;
+          Grid.Cells[4, item] := QNF_Itens.FieldByName('CFOP').AsString;
+          Grid.Cells[5, item] := QNF_Itens.FieldByName('CST').AsString;
+          { StrToFloat(campo.AsString) fazia campo -> string -> float. Agora le
+            o numero direto: as mascaras do FormatFloat sao as mesmas, entao a
+            celula sai identica, e some o risco de a conversao por string
+            falhar conforme o tipo que o ZeosLib inferir de double/decimal. }
           Grid.Cells[6, item] := FormatFloat('#######0.000',
-            StrToFloat(QNF_ItensQUANTIDADE.AsString));
-          Grid.Cells[7, item] := QNF_ItensUNIDADE.AsString;
+            QNF_Itens.FieldByName('QUANTIDADE').AsFloat);
+          Grid.Cells[7, item] := QNF_Itens.FieldByName('UNIDADE').AsString;
           Grid.Cells[8, item] := FormatFloat('#######0.000000000',
-            StrToFloat(QNF_ItensPRECO_UNITARIO.AsString));
+            QNF_Itens.FieldByName('PRECO_UNITARIO').AsFloat);
+          { PRECO_TOTAL e decimal(15,4): AsCurrency preserva as 4 casas do
+            Currency do Delphi, como o StrToCurr fazia. }
           Grid.Cells[9, item] := FormatFloat('#######0.00',
-            StrToCurr(QNF_ItensPRECO_TOTAL.AsString));
-          Grid.Cells[10, item] := QNF_ItensCOD_OS.AsString;
+            QNF_Itens.FieldByName('PRECO_TOTAL').AsCurrency);
+          Grid.Cells[10, item] := QNF_Itens.FieldByName('COD_OS').AsString;
           item := item + 1;
 
           QNF_Itens.Next
 
         until QNF_Itens.Eof;
 
-        ETotal.Value := TBNfTOTAL_NOTA.Value;
-      ETotalBenef.Value := TBNfVALOR.Value;
+      ETotal.Value := QNf.FieldByName('TOTAL_NOTA').AsCurrency;
+      ETotalBenef.Value := QNf.FieldByName('VALOR').AsCurrency;
 
       BTGravar.enabled := False;
 
@@ -1232,8 +1491,19 @@ begin
     exit;
   end;
 
-  With Modulo do
-    If (TBClientesESTADO.Text <> 'SP') and (ECFOP.Text <> '6124') then
+  if not GarantirConexao then Exit;
+
+  { TBClientesESTADO vinha do cursor BDE posicionado pelo EClienteChange.
+    Recarrega explicitamente para nao depender de estado de outro dataset. }
+  if not CarregarCliente(Modulo.RetZero(ECliente.Text, 4)) then
+  begin
+    Application.MessageBox('Cliente nao encontrado!', 'AVISO',
+      MB_Ok + MB_IconInformation);
+    ECliente.SetFocus;
+    exit;
+  end;
+
+    If (QCli.FieldByName('ESTADO').AsString <> 'SP') and (ECFOP.Text <> '6124') then
     begin
       Application.MessageBox(
         'Atenção: este cliente é de fora do estado de São Paulo. Neste caso, o CFOP é diferente: Beneficiamento deve ser 6124 e o item de retorno deve estar com 6902.', 'AVISO', MB_Ok + MB_IconInformation);
@@ -1298,141 +1568,179 @@ begin
 
   end;
 
-  With Modulo do
   begin
     If Application.MessageBox(PChar('Deseja realmente ' + tipo +
           ' essa Nota Fiscal?'), PChar('Confirmação para ' + tipo),
       MB_YESNO + MB_IconQuestion + MB_DEFBUTTON2) = IdYes then
     begin
 
-      TBConfig.FindKey(['18']);
-      If TBConfig.GotoKey then
-      begin
-        TBConfig.Edit;
-        TBConfigVLR_CONFIG.Value := EAliqICMS.Text;
-        TBConfig.Post;
-      end;
+      { TBConfig.FindKey(['18']) + Edit + Post -> UPDATE em tb_config }
+      GravarConfig(18, EAliqICMS.Text);
 
-      TBNfCOD_CLI.Value := ECliente.Text;
-      TBNfDATAE.Value := EDataE.date;
-      TBNfVALOR.Value := ETotalBenef.Value;
-      TBNfTOTAL_NOTA.Value := ETotal.Value;
-      TBNfNATUREZA.Value := ENatureza.Text;
-      TBNfCFOP.Value := ECFOP.Text;
-      TBNfCFOP_RETORNO.Value := ECFOPRetorno.Text;
-      TBNfCST.Value := ECST.Text;
-      TBNfCST_RETORNO.Value := ECSTRetorno.Text;
-      TBNfDATAS.Value := EDataS.date;
+      { A NF ja existe nos dois caminhos: no 'gravar' o stub foi criado pela
+        pre-reserva no BTOK2; no 'alterar' o registro e o original. Entao aqui
+        e SEMPRE UPDATE (secao 4.4 do HANDOFF).
+        Os tipos seguem o schema: VALOR/TOTAL_NOTA/ICMS_BASE sao decimal(15,4)
+        -> AsCurrency (Currency tem exatamente 4 casas, sem perda);
+        QUANTIDADE/PESOL/PESOB sao double -> AsFloat;
+        DATAE/DATAS sao date -> AsDate, sem componente de hora. }
+      QNfCmd.Close;
+      QNfCmd.SQL.Text :=
+        'UPDATE tb_nf SET COD_CLI = :pCodCli, DATAE = :pDataE, VALOR = :pValor, ' +
+        'TOTAL_NOTA = :pTotal, NATUREZA = :pNatureza, CFOP = :pCfop, ' +
+        'CFOP_RETORNO = :pCfopRet, CST = :pCst, CST_RETORNO = :pCstRet, ' +
+        'DATAS = :pDataS, TIPO = :pTipo, TIPO_RETORNO = :pTipoRet, ' +
+        'TIPO_PAGAMENTO = :pTipoPag, TIPO_30 = :pT30, TIPO_45 = :pT45, ' +
+        'TIPO_60 = :pT60, ICMS_BASE = :pIcms, NOME_TRANSPORTADORA = :pTransp, ' +
+        'QUANTIDADE = :pQtd, ESPECIE = :pEsp, PESOL = :pPesoL, PESOB = :pPesoB, ' +
+        'TIPO_FRETE = :pFrete, TIPO_EMISSAO = :pEmissao, PLACA = :pPlaca, ' +
+        'UF_PLACA = :pUfPlaca ' +
+        'WHERE CODIGO = :pCodigo';
+
+      QNfCmd.ParamByName('pCodCli').AsString    := ECliente.Text;
+      QNfCmd.ParamByName('pDataE').AsDate       := EDataE.date;
+      QNfCmd.ParamByName('pValor').AsCurrency   := ETotalBenef.Value;
+      QNfCmd.ParamByName('pTotal').AsCurrency   := ETotal.Value;
+      QNfCmd.ParamByName('pNatureza').AsString  := ENatureza.Text;
+      QNfCmd.ParamByName('pCfop').AsString      := ECFOP.Text;
+      QNfCmd.ParamByName('pCfopRet').AsString   := ECFOPRetorno.Text;
+      QNfCmd.ParamByName('pCst').AsString       := ECST.Text;
+      QNfCmd.ParamByName('pCstRet').AsString    := ECSTRetorno.Text;
+      QNfCmd.ParamByName('pDataS').AsDate       := EDataS.date;
+
       if OpS.Checked = true then
-        TBNFTIPO.Text := 'S'
+        QNfCmd.ParamByName('pTipo').AsString := 'S'
       else
-        TBNFTIPO.Text := 'E';
+        QNfCmd.ParamByName('pTipo').AsString := 'E';
       if OpTot.Checked = true then
-        TBNFTIPO_RETORNO.Text := 'T'
+        QNfCmd.ParamByName('pTipoRet').AsString := 'T'
       else
-        TBNFTIPO_RETORNO.Text := 'P';
+        QNfCmd.ParamByName('pTipoRet').AsString := 'P';
       if opVista.Checked = true then
-        TBNFTIPO_PAGAMENTO.Text := 'V'
+        QNfCmd.ParamByName('pTipoPag').AsString := 'V'
       else
-        TBNFTIPO_PAGAMENTO.Text := 'P';
+        QNfCmd.ParamByName('pTipoPag').AsString := 'P';
 
-      if Opt30.Checked then TBNfTIPO_30.Text := 'S' else TBNfTIPO_30.Text := 'N';
-      if Opt45.Checked then TBNfTIPO_45.Text := 'S' else TBNfTIPO_45.Text := 'N';
-      if Opt60.Checked then TBNfTIPO_60.Text := 'S' else TBNfTIPO_60.Text := 'N';
+      if Opt30.Checked then QNfCmd.ParamByName('pT30').AsString := 'S' else QNfCmd.ParamByName('pT30').AsString := 'N';
+      if Opt45.Checked then QNfCmd.ParamByName('pT45').AsString := 'S' else QNfCmd.ParamByName('pT45').AsString := 'N';
+      if Opt60.Checked then QNfCmd.ParamByName('pT60').AsString := 'S' else QNfCmd.ParamByName('pT60').AsString := 'N';
 
-      TBNfICMS_BASE.Value := Eicms.Value;
-      TBNfNOME_TRANSPORTADORA.Value := ENome.Text;
-      TBNfQUANTIDADE.Value := StrToFloat(EQtd.Text);
-      TBNfESPECIE.Value := EEsp.Text;
-      TBNfPESOL.Value := EPesoL.Value;
-      TBNfPESOB.Value := EPesoB.Value;
+      QNfCmd.ParamByName('pIcms').AsCurrency  := Eicms.Value;
+      QNfCmd.ParamByName('pTransp').AsString  := ENome.Text;
+      QNfCmd.ParamByName('pQtd').AsFloat      := StrToFloat(EQtd.Text);
+      QNfCmd.ParamByName('pEsp').AsString     := EEsp.Text;
+      QNfCmd.ParamByName('pPesoL').AsFloat    := EPesoL.Value;
+      QNfCmd.ParamByName('pPesoB').AsFloat    := EPesoB.Value;
+
       if OpE.Checked = true then
-        TBNFTIPO_FRETE.Text := 'E'
+        QNfCmd.ParamByName('pFrete').AsString := 'E'
       else
-        TBNFTIPO_FRETE.Text := 'D';
+        QNfCmd.ParamByName('pFrete').AsString := 'D';
       if OpNormal.Checked = true then
-        TBNfTIPO_EMISSAO.Text := 'N'
+        QNfCmd.ParamByName('pEmissao').AsString := 'N'
       else
-        TBNfTIPO_EMISSAO.Text := 'D';
-      TBNfPLACA.Value := EPlaca.Text;
-      TBNfUF_PLACA.Value := Eestado.Text;
+        QNfCmd.ParamByName('pEmissao').AsString := 'D';
 
-      QNF_Ref.close;
-      QNF_Ref.SQL.Clear;
-      QNF_Ref.SQL.Text :=
-        'Delete from NF_ref where COD_NF = "' + ECodigo.Text + '"';
-      QNF_Ref.ExecSQL;
+      QNfCmd.ParamByName('pPlaca').AsString   := EPlaca.Text;
+      QNfCmd.ParamByName('pUfPlaca').AsString := Eestado.Text;
+      QNfCmd.ParamByName('pCodigo').AsString  := ECodigo.Text;
 
-      For idx := 1 to GridNF.RowCount - 1 do
-      begin
-        TBNF_Ref.Append;
+      { Gravacao da NF, das referencias e dos itens em UMA unidade de trabalho.
+        No BDE cada Post ia direto ao arquivo; aqui um erro no meio deixaria a
+        nota com itens pela metade, por isso a transacao (secao 4.5).
 
-        if GridNF.Cells[0, idx] = 'Sim' then
-        begin
-          TBNf_RefFLAG_NFE.Value := 'S';
-          TBNf_RefCOD_NF.Value := ECodigo.Text;
-          TBNf_RefCOD_NF_CLIENTE.Value := GridNF.Cells[1, idx];
-          TBNf_RefDATA_NF_CLIENTE.AsString := GridNF.Cells[2, idx];
-          TBNf_RefVALOR_NF_CLIENTE.Value := StrToCurr(GridNF.Cells[3, idx]);
-        end
-        else
-        begin
-          TBNf_RefFLAG_NFE.Value := 'N';
-          TBNf_RefCOD_NF.Value := ECodigo.Text;
-          TBNf_RefCOD_NF_CLIENTE.Value := GridNF.Cells[1, idx];
-          TBNf_RefDATA_NF_CLIENTE.AsString := GridNF.Cells[2, idx];
-          TBNf_RefVALOR_NF_CLIENTE.Value := StrToCurr(GridNF.Cells[3, idx]);
-        end;
-
-      // TBNF_Ref.Post;
-
-      end;
-
-      QNF_Itens.close;
-      QNF_Itens.SQL.Clear;
-      QNF_Itens.SQL.Text :=
-        'Delete from NF_itens where COD_NF = "' + ECodigo.Text + '"';
-      QNF_Itens.ExecSQL;
-
-      For idx := 1 to Grid.RowCount - 1 do
-      begin
-        TBNf_Itens.Append;
-
-        TBNf_ItensCOD_NF.AsString := ECodigo.Text;
-        TBNf_ItensCODIGO.AsString := Grid.Cells[0, idx];
-        TBNf_ItensDESCRICAO.AsString := Grid.Cells[1, idx];
-        TBNf_ItensNCM.AsString := Grid.Cells[2, idx];
-        TBNf_ItensCEST.AsString := Grid.Cells[3, idx];
-        TBNf_ItensCFOP.AsString := Grid.Cells[4, idx];
-        TBNf_ItensCST.AsString := Grid.Cells[5, idx];
-        TBNf_ItensQUANTIDADE.Value := StrToFloat(Grid.Cells[6, idx]);
-        TBNf_ItensUNIDADE.AsString := Grid.Cells[7, idx];
-        TBNf_ItensPRECO_UNITARIO.Value := StrToFloat(Grid.Cells[8, idx]);
-        TBNf_ItensPRECO_TOTAL.Value := StrToCurr(Grid.Cells[9, idx]);
-        TBNf_ItensCOD_OS.AsString := Grid.Cells[10, idx];
-
-      end;
-
+        Sobre os laços: o codigo original chamava Append sem Post (o Post estava
+        ate comentado). Funcionava por efeito colateral - o TDataSet do BDE faz
+        post implicito do registro pendente quando o Append seguinte e chamado.
+        Com SQL isso nao existe: cada linha vira um INSERT explicito. }
+      Modulo.ZConexao.AutoCommit := False;
       try
-        if (TBNf.State = dsInsert) or (TBNf.State = dsEdit) then
-          TBNf.Post;
-        if (TBNf_Itens.State = dsInsert) or (TBNf_Itens.State = dsEdit) then
-          TBNf_Itens.Post;
-        if (TBNF_Ref.State = dsInsert) or (TBNF_Ref.State = dsEdit) then
-          TBNF_Ref.Post;
+        try
+          QNfCmd.ExecSQL;   { UPDATE tb_nf montado acima }
 
+          QNfRefCmd.Close;
+          QNfRefCmd.SQL.Text := 'DELETE FROM tb_nf_ref WHERE COD_NF = :pCod';
+          QNfRefCmd.ParamByName('pCod').AsString := ECodigo.Text;
+          QNfRefCmd.ExecSQL;
+
+          For idx := 1 to GridNF.RowCount - 1 do
+          begin
+            QNfRefCmd.Close;
+            QNfRefCmd.SQL.Text :=
+              'INSERT INTO tb_nf_ref (COD_NF, COD_NF_CLIENTE, DATA_NF_CLIENTE, ' +
+              'VALOR_NF_CLIENTE, FLAG_NFE) VALUES (:pCodNf, :pCodCli, :pData, :pValor, :pFlag)';
+            QNfRefCmd.ParamByName('pCodNf').AsString  := ECodigo.Text;
+            QNfRefCmd.ParamByName('pCodCli').AsString := GridNF.Cells[1, idx];
+            { a celula guarda a data ja formatada pelo locale, como o
+              TBNf_RefDATA_NF_CLIENTE.AsString gravava }
+            QNfRefCmd.ParamByName('pData').AsDate     := StrToDate(GridNF.Cells[2, idx]);
+            QNfRefCmd.ParamByName('pValor').AsCurrency := StrToCurr(GridNF.Cells[3, idx]);
+            if GridNF.Cells[0, idx] = 'Sim' then
+              QNfRefCmd.ParamByName('pFlag').AsString := 'S'
+            else
+              QNfRefCmd.ParamByName('pFlag').AsString := 'N';
+            QNfRefCmd.ExecSQL;
+          end;
+
+          QNfItensCmd.Close;
+          QNfItensCmd.SQL.Text := 'DELETE FROM tb_nf_itens WHERE COD_NF = :pCod';
+          QNfItensCmd.ParamByName('pCod').AsString := ECodigo.Text;
+          QNfItensCmd.ExecSQL;
+
+          For idx := 1 to Grid.RowCount - 1 do
+          begin
+            QNfItensCmd.Close;
+            QNfItensCmd.SQL.Text :=
+              'INSERT INTO tb_nf_itens (COD_NF, CODIGO, DESCRICAO, NCM, CEST, CFOP, ' +
+              'CST, QUANTIDADE, UNIDADE, PRECO_UNITARIO, PRECO_TOTAL, COD_OS) ' +
+              'VALUES (:pCodNf, :pCodigo, :pDescr, :pNcm, :pCest, :pCfop, ' +
+              ':pCst, :pQtd, :pUnid, :pPrecoUni, :pPrecoTot, :pCodOs)';
+            QNfItensCmd.ParamByName('pCodNf').AsString    := ECodigo.Text;
+            QNfItensCmd.ParamByName('pCodigo').AsString   := Grid.Cells[0, idx];
+            QNfItensCmd.ParamByName('pDescr').AsString    := Grid.Cells[1, idx];
+            QNfItensCmd.ParamByName('pNcm').AsString      := Grid.Cells[2, idx];
+            QNfItensCmd.ParamByName('pCest').AsString     := Grid.Cells[3, idx];
+            QNfItensCmd.ParamByName('pCfop').AsString     := Grid.Cells[4, idx];
+            QNfItensCmd.ParamByName('pCst').AsString      := Grid.Cells[5, idx];
+            QNfItensCmd.ParamByName('pQtd').AsFloat       := StrToFloat(Grid.Cells[6, idx]);
+            QNfItensCmd.ParamByName('pUnid').AsString     := Grid.Cells[7, idx];
+            QNfItensCmd.ParamByName('pPrecoUni').AsFloat  := StrToFloat(Grid.Cells[8, idx]);
+            QNfItensCmd.ParamByName('pPrecoTot').AsCurrency := StrToCurr(Grid.Cells[9, idx]);
+            { COD_OS tem FK para tb_os ON DELETE SET NULL; celula vazia grava NULL }
+            if Trim(Grid.Cells[10, idx]) = '' then
+              QNfItensCmd.ParamByName('pCodOs').Clear
+            else
+              QNfItensCmd.ParamByName('pCodOs').AsString := Grid.Cells[10, idx];
+            QNfItensCmd.ExecSQL;
+          end;
+
+          Modulo.ZConexao.Commit;
+          FCodigoReservado := '';   { nota gravada: nao e mais stub a liberar }
+        except
+          on E: Exception do
+          begin
+            try Modulo.ZConexao.Rollback; except end;
+            ShowMessage('Atencao: Nao foi possivel gravar a NF! ' + E.Message);
+            ECodigo.SetFocus;
+            Exit;
+          end;
+        end;
+      finally
+        Modulo.ZConexao.AutoCommit := True;
+      end;
+
+      { O envio da NF-e fica FORA da transacao: e chamada a webservice, nao
+        pode segurar a transacao do banco aberta. O enviaNfe atualiza
+        FLG_ENVIADA por conta propria. }
+      try
         enviaNfe;
 
-
         Limpar;
-        TBNf.Last;
-        ECodigo.Text := inttostr(TBNfCODIGO.AsInteger + 1);
+        Modulo.NovaLeitura;
+        ECodigo.Text := ProximoCodigoNf;
         ECodigo.SetFocus;
       Except
         ShowMessage('Atencao: Nao foi possivel enviar a NF-e!');
-        TBNF_Ref.Cancel;
-        TBNf_Itens.Cancel;
-        TBNf.Cancel;
         ECodigo.SetFocus;
       end;
 
@@ -1597,25 +1905,24 @@ begin
 end;
 
 procedure TFNf.FormClose(Sender: TObject; var Action: TCloseAction);
+{ Antes: TBNf ficava em dsEdit desde o BTOK2 e o Delete removia o registro.
+  Agora o equivalente e o codigo pre-reservado (FCodigoReservado): existe um
+  stub em tb_nf com so a PK preenchida enquanto a nota nao foi gravada.
+  A pergunta ao usuario e o mesmo texto de antes. }
 begin
-  with Modulo do
-  begin
-    If (TBNf.State = dsEdit) and (tipo = 'gravar') then
-      If Application.MessageBox(PChar(
-          'VOCÊ ESTA SAINDO COM UMA NF EM ABERTO! ELA SERÁ DELETADA! Deseja proseguir?'),
-        PChar('saindo do formulário'),
-        MB_YESNO + MB_IconQuestion + MB_DEFBUTTON2) = IdYes then
-      begin
-        TBNf.Delete;
-        TBNf.Refresh;
-      end
-      else
-      begin
-        Action := caNone;
-        ENatureza.SetFocus;
-      end;
-  end;
-
+  If (FCodigoReservado <> '') and (tipo = 'gravar') then
+    If Application.MessageBox(PChar(
+        'VOCÊ ESTA SAINDO COM UMA NF EM ABERTO! ELA SERÁ DELETADA! Deseja proseguir?'),
+      PChar('saindo do formulário'),
+      MB_YESNO + MB_IconQuestion + MB_DEFBUTTON2) = IdYes then
+    begin
+      LiberarCodigoReservado;
+    end
+    else
+    begin
+      Action := caNone;
+      ENatureza.SetFocus;
+    end;
 end;
 
 procedure TFNf.BTaddClick(Sender: TObject);
@@ -1718,7 +2025,7 @@ begin
       nfeAux := ECodigo.Text;
       nf_envio := ECodigo.Text;
 
-      TBClientes.FindKey(['0001']);
+      CarregarCliente('0001');   { emitente: a propria empresa }
 
       Ide.cUF := 35;
 
@@ -1755,24 +2062,24 @@ begin
       Ide.tpAmb := StrToTpAmb(Ok, ambiente);
 
       Ide.verProc := '1.0.0.0';
-      Ide.cMunFG := strtoint(DigitoCidade(TBClientesCOD_MUNICIPIO.AsString));
+      Ide.cMunFG := strtoint(DigitoCidade(QCli.FieldByName('COD_MUNICIPIO').AsString));
       Ide.finNFe := fnNormal;
 
-      Emit.CNPJCPF := TBClientesCNPJ.Value;
-      Emit.IE := TBClientesINSC_EST.Value;
-      Emit.xNome := TBClientesRAZAO.Value;
-      Emit.xFant := TBClientesFANTASIA.Value;
-      Emit.EnderEmit.Fone := TBClientesTEL1.Text;
-      Emit.EnderEmit.CEP := strtoint(RemoveChar(TBClientesCEP.Value));
+      Emit.CNPJCPF := QCli.FieldByName('CNPJ').AsString;
+      Emit.IE := QCli.FieldByName('INSC_EST').AsString;
+      Emit.xNome := QCli.FieldByName('RAZAO').AsString;
+      Emit.xFant := QCli.FieldByName('FANTASIA').AsString;
+      Emit.EnderEmit.Fone := QCli.FieldByName('TEL1').AsString;
+      Emit.EnderEmit.CEP := strtoint(RemoveChar(QCli.FieldByName('CEP').AsString));
 
-      Emit.EnderEmit.xLgr := TBClientesENDERECO.Value;
-      Emit.EnderEmit.nro := TBClientesNUMERO.Value;
+      Emit.EnderEmit.xLgr := QCli.FieldByName('ENDERECO').AsString;
+      Emit.EnderEmit.nro := QCli.FieldByName('NUMERO').AsString;
 
-      Emit.EnderEmit.xBairro := TBClientesBAIRRO.Value;
+      Emit.EnderEmit.xBairro := QCli.FieldByName('BAIRRO').AsString;
       Emit.EnderEmit.cMun := strtoint
-        (DigitoCidade(TBClientesCOD_MUNICIPIO.AsString));
-      Emit.EnderEmit.xMun := TBClientesCIDADE.Value;
-      Emit.EnderEmit.UF := TBClientesESTADO.Value;
+        (DigitoCidade(QCli.FieldByName('COD_MUNICIPIO').AsString));
+      Emit.EnderEmit.xMun := QCli.FieldByName('CIDADE').AsString;
+      Emit.EnderEmit.UF := QCli.FieldByName('ESTADO').AsString;
       Emit.EnderEmit.cPais := 1058;
       Emit.EnderEmit.xPais := 'BRASIL';
 
@@ -1782,32 +2089,31 @@ begin
       Emit.CRT := crtSimplesNacional;
 
 
-      TBConfig.FindKey(['26']);
-      AutXML.New.CNPJCPF := TBConfigVLR_CONFIG.AsString;
+      AutXML.New.CNPJCPF := LerConfig(26);
 
 
-      TBClientes.FindKey([ECliente.Text]);
+      CarregarCliente(ECliente.Text);   { destinatario }
       codCliente := ECliente.Text;
-      Dest.CNPJCPF := TBClientesCNPJ.Value;
-      Dest.IE := TBClientesINSC_EST.Value;
+      Dest.CNPJCPF := QCli.FieldByName('CNPJ').AsString;
+      Dest.IE := QCli.FieldByName('INSC_EST').AsString;
       Dest.ISUF := '';
 
       if ambiente = '2' then
         Dest.xNome :=
           'NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL'
       else
-        Dest.xNome := TBClientesRAZAO.Value;
+        Dest.xNome := QCli.FieldByName('RAZAO').AsString;
 
-      Dest.EnderDest.Fone := TBClientesTEL1.Text;
-      Dest.EnderDest.CEP := strtoint(RemoveChar(TBClientesCEP.Value));
-      Dest.EnderDest.xLgr := TBClientesENDERECO.Value;
-      Dest.EnderDest.nro := TBClientesNUMERO.Value;
+      Dest.EnderDest.Fone := QCli.FieldByName('TEL1').AsString;
+      Dest.EnderDest.CEP := strtoint(RemoveChar(QCli.FieldByName('CEP').AsString));
+      Dest.EnderDest.xLgr := QCli.FieldByName('ENDERECO').AsString;
+      Dest.EnderDest.nro := QCli.FieldByName('NUMERO').AsString;
       Dest.EnderDest.xCpl := '';
-      Dest.EnderDest.xBairro := TBClientesBAIRRO.Value;
+      Dest.EnderDest.xBairro := QCli.FieldByName('BAIRRO').AsString;
       Dest.EnderDest.cMun := strtoint
-        (DigitoCidade(TBClientesCOD_MUNICIPIO.AsString));
-      Dest.EnderDest.xMun := TBClientesCIDADE.Value;
-      Dest.EnderDest.UF := TBClientesESTADO.Value;
+        (DigitoCidade(QCli.FieldByName('COD_MUNICIPIO').AsString));
+      Dest.EnderDest.xMun := QCli.FieldByName('CIDADE').AsString;
+      Dest.EnderDest.UF := QCli.FieldByName('ESTADO').AsString;
       Dest.EnderDest.cPais := 1058;
       Dest.EnderDest.xPais := 'BRASIL';
       Dest.indIEDest := inContribuinte;
@@ -1838,7 +2144,7 @@ begin
           begin
             cUF := 35; // recuperar o valor do codigo do estado de forma correta!!!! (ver no manual)
             AAMM := FormatDateTime('yymm', date);
-            CNPJ := TBClientesCNPJ.Value;
+            CNPJ := QCli.FieldByName('CNPJ').AsString;
             serie := 0;
             nNF := strtoint(ENF.Text);
             Modelo := 01;
@@ -1935,7 +2241,7 @@ begin
               // verificar estes valores
 
               // se for emerson dadario, coloca o csosn101
-              if (TBClientesCODIGO.Value = '0343') or (TBClientesCODIGO.Value = '0001') then
+              if (QCli.FieldByName('CODIGO').AsString = '0343') or (QCli.FieldByName('CODIGO').AsString = '0001') then
               ICMS.CSOSN := csosn101
               else
               ICMS.CSOSN := csosn900;
@@ -2057,7 +2363,7 @@ begin
       else
         Total.ICMSTot.vBC := 0;
 
-      If TBClientesESTADO.Value <> 'SP' then
+      If QCli.FieldByName('ESTADO').AsString <> 'SP' then
       begin
         Total.ICMSTot.vICMS := 0.12 * Total.ICMSTot.vBC;
       end
@@ -2256,7 +2562,7 @@ END;
       // mensagem telegram
 
       MsgTelegram := '*NF EMITIDA:*' + nfeAux + sLineBreak +
-                     '*CLIENTE:*' + TBClientesFANTASIA.Value ;
+                     '*CLIENTE:*' + QCli.FieldByName('FANTASIA').AsString ;
 
 
 
@@ -2291,13 +2597,7 @@ END;
             else
             begin
 
-              WITH Modulo DO
-              BEGIN
-                TBNf.FindKey([nfeAux]);
-                TBNf.Edit;
-                TBNFFLG_ENVIADA.Value := 'N';
-                TBNf.Post;
-              END;
+              AtualizarFlagNf(nfeAux, 'N');
 
               ShowMessage('Atenção, erro ao enviar:' + E.message);
 
@@ -2365,43 +2665,38 @@ END;
 
       //ShowMessage('Buscano nota' + nfeAux);
 
-      TBNf.FindKey([nfeAux]);
-      TBNf.Edit;
-    //  TBNfCOD_NFE.Value := ACBrNFe1.WebServices.Retorno.NFeRetorno.ProtDFe.Items[0].chDFe;
-
-      TBNfCOD_NFE.Value :=   ACBrNFe1.NotasFiscais[0].NFe.procNFe.chNFe  ;
-
-      TBNfPATH_NFE.Value := ACBrNFe1.NotasFiscais.Items[0].NomeArq;
-      TBNFFLG_ENVIADA.Value := 'S';
-      TBNf.Post;
+    //  chave alternativa: ACBrNFe1.WebServices.Retorno.NFeRetorno.ProtDFe.Items[0].chDFe;
+      AtualizarNfEnviada(nfeAux,
+                         ACBrNFe1.NotasFiscais[0].NFe.procNFe.chNFe,
+                         ACBrNFe1.NotasFiscais.Items[0].NomeArq);
 
       QNF_Config.close;
       QNF_Config.SQL.Clear;
-      QNF_Config.SQL.Text := 'Select * from Config';
+      QNF_Config.SQL.Text := 'SELECT COD_CONFIG, VLR_CONFIG FROM tb_config';
       QNF_Config.Open;
 
       If not QNF_Config.Eof then
         repeat
-          If QNF_ConfigCOD_CONFIG.Value = 6 then
-            host := QNF_ConfigVLR_CONFIG.Value;
-          If QNF_ConfigCOD_CONFIG.Value = 7 then
-            port := QNF_ConfigVLR_CONFIG.Value;
-          If QNF_ConfigCOD_CONFIG.Value = 8 then
-            user := QNF_ConfigVLR_CONFIG.Value;
-          If QNF_ConfigCOD_CONFIG.Value = 9 then
-            pass := QNF_ConfigVLR_CONFIG.Value;
+          If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 6 then
+            host := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+          If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 7 then
+            port := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+          If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 8 then
+            user := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+          If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 9 then
+            pass := QNF_Config.FieldByName('VLR_CONFIG').AsString;
           QNF_Config.Next
         until QNF_Config.Eof;
 
-        TBClientes.FindKey([codCliente]);
+        CarregarCliente(codCliente);
 
 
       Mensagem := TstringList.Create;
       Mensagem.Add(
         '<HTML>Este e-mail refere-se à Nota Fiscal Eletronica Nacional emitida para:');
       Mensagem.Add('');
-      Mensagem.Add('<b>Razao Social...:</b>' + TBClientesRAZAO.Value);
-      Mensagem.Add('CNPJ...........:' + TBClientesCNPJ.Value);
+      Mensagem.Add('<b>Razao Social...:</b>' + QCli.FieldByName('RAZAO').AsString);
+      Mensagem.Add('CNPJ...........:' + QCli.FieldByName('CNPJ').AsString);
       Mensagem.Add('');
       Mensagem.Add(
         'Para verificar a autorização do SEFAZ para esta NF-e, consulte o site:'
@@ -2447,12 +2742,12 @@ END;
 
       If not QEMail.Eof then
         repeat
-          If QEMailFLG_CQ.AsString <> 'X' then
+          If QEMail.FieldByName('FLG_CQ').AsString <> 'X' then
           begin
             If i = 0 then
-              destinatario := QEMailEMAIL.AsString
+              destinatario := QEMail.FieldByName('EMAIL').AsString
             else
-              CC.Add(QEMailEMAIL.AsString);
+              CC.Add(QEMail.FieldByName('EMAIL').AsString);
             i := i + 1;
           end;
           QEMail.Next
@@ -2521,13 +2816,7 @@ END;
     on E: Exception do
     begin
       ShowMessage('Problema ao enviar email' + E.Message);
-      WITH Modulo DO
-      BEGIN
-        TBNf.FindKey([ECodigo.Text]);
-        TBNf.Edit;
-        TBNFFLG_ENVIADA.Value := 'N';
-        TBNf.Post;
-      END;
+      AtualizarFlagNf(ECodigo.Text, 'N');
 
     end;
   end;
@@ -2753,7 +3042,7 @@ begin
     If (tipo = 'alterar') then
     begin
       ACBrNFe1.NotasFiscais.Clear;
-      ACBrNFe1.NotasFiscais.LoadFromFile(TBNfPATH_NFE.Value);
+      ACBrNFe1.NotasFiscais.LoadFromFile(LerCampoNf(ECodigo.Text, 'PATH_NFE'));
       if not(InputQuery('Cancelamento NFE', 'Digite uma justificativa', vAux))
         then
         exit;
@@ -2774,10 +3063,7 @@ begin
 
       ACBrNFe1.EnviarEvento(strtoint(idLote));
 
-      TBNf.FindKey([ECodigo.Text]);
-      TBNf.Edit;
-      TBNFFLG_ENVIADA.Value := 'C';
-      TBNf.Post;
+      AtualizarFlagNf(ECodigo.Text, 'C');
 
       AssignFile(arquivo, ACBrNFe1.Configuracoes.Arquivos.PathSalvar +
           'Amortrat_NFe.log');
@@ -2820,7 +3106,7 @@ begin
     begin
 
       ACBrNFe1.NotasFiscais.Clear;
-      ACBrNFe1.NotasFiscais.LoadFromFile(TBNfPATH_NFE.Value);
+      ACBrNFe1.NotasFiscais.LoadFromFile(LerCampoNf(ECodigo.Text, 'PATH_NFE'));
 
       // if not(InputQuery('Cancelamento NFE', 'Digite uma justificativa', vAux)) then
       // exit;
@@ -2830,7 +3116,7 @@ begin
       ACBrNFe1.EventoNFe.Evento.Clear;
       ACBrNFe1.EventoNFe.idLote := strtoint(idLote);
 
-      Chave := Trim(OnlyNumber(TBNfCOD_NFE.Value));
+      Chave := Trim(OnlyNumber(LerCampoNf(ECodigo.Text, 'COD_NFE')));
 
       CNPJ := Copy(Chave, 7, 14);
       nSeqEvento := '1';
@@ -2891,13 +3177,13 @@ procedure TFNf.BTEnviarClick(Sender: TObject);
 begin
 
   enviaNfe;
-  with Modulo do
+  Limpar;
+  if GarantirConexao then
   begin
-    Limpar;
-    TBNf.Last;
-    ECodigo.Text := inttostr(TBNfCODIGO.AsInteger + 1);
-    ECodigo.SetFocus;
+    Modulo.NovaLeitura;
+    ECodigo.Text := ProximoCodigoNf;
   end;
+  ECodigo.SetFocus;
 
 end;
 
@@ -2997,37 +3283,45 @@ var
     raveFile, aliqICMS: String;
   Ok: Boolean;
 begin
-  { Recuperando as informacoes para ACBRnfe1 }
+  { Recuperando as informacoes para ACBRnfe1.
+    'Select * from Config' -> tb_config; os TField persistentes sairam, o
+    acesso e por FieldByName. EAliqICMS e TCurrencyEdit: mantido o StrToCurr
+    sobre o texto de VLR_CONFIG (a coluna e varchar, nao numerica). }
+  if not GarantirConexao then Exit;
+
   QNF_Config.close;
   QNF_Config.SQL.Clear;
-  QNF_Config.SQL.Text := 'Select * from Config';
+  QNF_Config.SQL.Text := 'SELECT COD_CONFIG, VLR_CONFIG FROM tb_config';
   QNF_Config.Open;
 
   If not QNF_Config.Eof then
     repeat
-      If QNF_ConfigCOD_CONFIG.Value = 1 then
-        caminho := QNF_ConfigVLR_CONFIG.Value;
-      If QNF_ConfigCOD_CONFIG.Value = 2 then
-        senha := QNF_ConfigVLR_CONFIG.Value;
-      If QNF_ConfigCOD_CONFIG.Value = 3 then
-        formaEmissao := QNF_ConfigVLR_CONFIG.Value;
-      If QNF_ConfigCOD_CONFIG.Value = 4 then
-        ambiente := QNF_ConfigVLR_CONFIG.Value;
-      If QNF_ConfigCOD_CONFIG.Value = 5 then
-        ufWebService := QNF_ConfigVLR_CONFIG.Value;
-      If QNF_ConfigCOD_CONFIG.Value = 14 then
-        pathNfe := QNF_ConfigVLR_CONFIG.Value;
-      If QNF_ConfigCOD_CONFIG.Value = 15 then
-        pathSchema := QNF_ConfigVLR_CONFIG.Value;
-      If QNF_ConfigCOD_CONFIG.Value = 16 then
-        logoDanfe := QNF_ConfigVLR_CONFIG.Value;
-      If QNF_ConfigCOD_CONFIG.Value = 17 then
-        raveFile := QNF_ConfigVLR_CONFIG.Value;
-      If QNF_ConfigCOD_CONFIG.Value = 18 then
-        EAliqICMS.Value := StrToCurr(QNF_ConfigVLR_CONFIG.Value);
+      If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 1 then
+        caminho := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+      If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 2 then
+        senha := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+      If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 3 then
+        formaEmissao := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+      If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 4 then
+        ambiente := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+      If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 5 then
+        ufWebService := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+      If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 14 then
+        pathNfe := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+      If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 15 then
+        pathSchema := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+      If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 16 then
+        logoDanfe := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+      If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 17 then
+        raveFile := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+      If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 18 then
+        EAliqICMS.Value := StrToCurr(QNF_Config.FieldByName('VLR_CONFIG').AsString);
 
       QNF_Config.Next
     until QNF_Config.Eof;
+
+  QNF_Config.Close;
+  CarregarClientesCombo;   { alimenta o EFantasia (era lookup BDE) }
 
     ACBrNFe1.Configuracoes.Certificados.ArquivoPFX := caminho;
    ACBrNFe1.Configuracoes.Certificados.Senha := senha;
@@ -3114,7 +3408,7 @@ begin
     If (tipo = 'alterar') then
     begin
       ACBrNFe1.NotasFiscais.Clear;
-      ACBrNFe1.NotasFiscais.LoadFromFile(TBNfPATH_NFE.Value);
+      ACBrNFe1.NotasFiscais.LoadFromFile(LerCampoNf(ECodigo.Text, 'PATH_NFE'));
       { if ACBrNFe1.NotasFiscais.Items[0].NFe.Ide.tpEmis = teDPEC then
         begin
         ACBrNFe1.WebServices.ConsultaDPEC.NFeChave := ACBrNFe1.NotasFiscais.Items[0].NFe.infNFe.ID;
@@ -3122,7 +3416,7 @@ begin
         ACBrNFe1.DANFE.ProtocoloNFe := ACBrNFe1.WebServices.ConsultaDPEC.nRegDPEC +' '+ DateTimeToStr(ACBrNFe1.WebServices.ConsultaDPEC.dhRegDPEC);
         end; }
 
-      TBClientes.FindKey([ECliente.Text]);
+      CarregarCliente(ECliente.Text);
       ACBrNFe1.NotasFiscais.GerarNFe;
       // ACBrNFe1.Enviar(1,True);
 
@@ -3131,15 +3425,15 @@ begin
         'Este e-mail refere-se à Nota Fiscal Eletronica Nacional emitida para:'
         );
       Mensagem.Add('');
-      Mensagem.Add('Razao Social...:' + TBClientesRAZAO.Value);
-      Mensagem.Add('CNPJ...........:' + TBClientesCNPJ.Value);
+      Mensagem.Add('Razao Social...:' + QCli.FieldByName('RAZAO').AsString);
+      Mensagem.Add('CNPJ...........:' + QCli.FieldByName('CNPJ').AsString);
       Mensagem.Add('');
       Mensagem.Add(
         'Para verificar a autorização do SEFAZ para esta NF-e, consulte o site:'
         );
       Mensagem.Add('https://nfe.fazenda.sp.gov.br/ConsultaNFe/consulta/publica/ConsultarNFe.aspx');
       Mensagem.Add('');
-      Mensagem.Add('Chave de acesso: ' + TBNfCOD_NFE.Value);
+      Mensagem.Add('Chave de acesso: ' + LerCampoNf(ECodigo.Text, 'COD_NFE'));
       Mensagem.Add('');
       Mensagem.Add(
         'O DANFE referente à NF-e acima mencionada encontra-se em anexo.');
@@ -3152,19 +3446,19 @@ begin
 
       QNF_Config.close;
       QNF_Config.SQL.Clear;
-      QNF_Config.SQL.Text := 'Select * from Config';
+      QNF_Config.SQL.Text := 'SELECT COD_CONFIG, VLR_CONFIG FROM tb_config';
       QNF_Config.Open;
 
       If not QNF_Config.Eof then
         repeat
-          If QNF_ConfigCOD_CONFIG.Value = 6 then
-            host := QNF_ConfigVLR_CONFIG.Value;
-          If QNF_ConfigCOD_CONFIG.Value = 7 then
-            port := QNF_ConfigVLR_CONFIG.Value;
-          If QNF_ConfigCOD_CONFIG.Value = 8 then
-            user := QNF_ConfigVLR_CONFIG.Value;
-          If QNF_ConfigCOD_CONFIG.Value = 9 then
-            pass := QNF_ConfigVLR_CONFIG.Value;
+          If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 6 then
+            host := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+          If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 7 then
+            port := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+          If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 8 then
+            user := QNF_Config.FieldByName('VLR_CONFIG').AsString;
+          If QNF_Config.FieldByName('COD_CONFIG').AsInteger = 9 then
+            pass := QNF_Config.FieldByName('VLR_CONFIG').AsString;
           QNF_Config.Next
         until QNF_Config.Eof;
 
@@ -3178,12 +3472,12 @@ begin
 
       If not QEMail.Eof then
         repeat
-          If QEMailFLG_CQ.AsString <> 'X' then
+          If QEMail.FieldByName('FLG_CQ').AsString <> 'X' then
           begin
             If i = 0 then
-              destinatario := QEMailEMAIL.AsString
+              destinatario := QEMail.FieldByName('EMAIL').AsString
             else
-              CC.Add(QEMailEMAIL.AsString);
+              CC.Add(QEMail.FieldByName('EMAIL').AsString);
             i := i + 1;
           end;
           QEMail.Next
@@ -3400,12 +3694,8 @@ begin
           MB_YESNO + MB_IconQuestion + MB_DEFBUTTON2) = IdYes) and
         (fileexists(dirName + '\' + vChave + '-nfe.xml')) then
       begin
-        TBNf.FindKey([ECodigo.Text]);
-        TBNf.Edit;
-        TBNfCOD_NFE.Value := vChave;
-        TBNfPATH_NFE.Value := dirName + '\' + vChave + '-nfe.xml';
-        TBNFFLG_ENVIADA.Value := 'S';
-        TBNf.Post;
+        AtualizarNfEnviada(ECodigo.Text, vChave,
+                           dirName + '\' + vChave + '-nfe.xml');
 
         ShowMessage('Nota ajustada com sucesso!');
 
