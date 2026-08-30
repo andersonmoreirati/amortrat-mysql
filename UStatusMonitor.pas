@@ -358,9 +358,10 @@ begin
       { Instancia exclusiva desta thread. O ACBr nao e thread-safe, entao
         reaproveitar o FNf.ACBrNFe1 daria corrupcao silenciosa. }
       ACBr := TACBrNFe.Create(nil);
-      { O StatusServico e uma chamada assinada: sem certificado o ACBr levanta
-        EACBrDFeException('DadosPFX, ArquivoPFX, URLPFX ou NumeroSerie nao
-        especificados'). Usa o mesmo PFX que o UNf (tb_config 1 e 2). }
+      { O certificado e exigido para o TLS mutuo com a SEFAZ (nao para assinar
+        o XML da consulta). Sem ele o ACBr levanta EACBrDFeException:
+        'DadosPFX, ArquivoPFX, URLPFX ou NumeroSerie nao especificados'.
+        Usa o mesmo PFX que o UNf (tb_config 1 e 2). }
       ACBr.Configuracoes.Certificados.ArquivoPFX := FArquivoPFX;
       ACBr.Configuracoes.Certificados.Senha      := FSenhaPFX;
 
@@ -369,9 +370,14 @@ begin
       ACBr.Configuracoes.WebServices.TimeOut := 12000;   { 12s - o default e 5s }
       ACBr.Configuracoes.WebServices.AguardarConsultaRet := 0;
       ACBr.Configuracoes.Geral.SSLLib        := libOpenSSL;
-      ACBr.Configuracoes.Geral.SSLCryptLib   := cryOpenSSL;
       ACBr.Configuracoes.Geral.SSLHttpLib    := httpOpenSSL;
-      ACBr.Configuracoes.Geral.SSLXmlSignLib := xsLibXml2;
+      { SSLXmlSignLib NAO e definido de proposito. A consulta de status nao
+        assina XML - precisa apenas do TLS mutuo com o certificado. Apontar
+        para xsLibXml2 (como faz o UNf, que de fato assina) obrigava a carregar
+        a libxml2 na abertura do sistema e derrubava com
+        EACBrXmlException('Nao foi possivel carregar a biblioteca LibXml2').
+        Ha um problema real de DLLs x86/x64 misturadas no diretorio do
+        executavel - ver secao 7.5 do HANDOFF. }
       ACBr.Configuracoes.Arquivos.Salvar     := False;
       ACBr.Configuracoes.Arquivos.SalvarEvento := False;
 

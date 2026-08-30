@@ -181,7 +181,7 @@ type
     { Dados da OS/cliente/peca/processo carregados por CarregarDadosOS.
       No BDE estes valores eram lidos direto dos TTable do Modulo, que ficavam
       POSICIONADOS por FindKey. Sem cursor persistente, os valores passam a
-      viver aqui â€” o que tambem evita que uma navegacao em outro form mude o
+      viver aqui — o que tambem evita que uma navegacao em outro form mude o
       que este relatorio imprime. }
     FOsCodigo, FOsCliente, FOsPeca, FOsNota, FOsLote, FOsQtd: string;
     FOsData:   TDateTime;
@@ -232,7 +232,7 @@ end;
 
 function TFRelatCQ.GarantirConexao: Boolean;
 // QNF_Config e QEMail vem do DFM, mas Modulo.ZConexao e criado em RUNTIME
-// (DataModuleCreate) e nao existe em design time â€” a ligacao e feita aqui.
+// (DataModuleCreate) e nao existe em design time — a ligacao e feita aqui.
 begin
   Result := False;
   if (Modulo = nil) or (Modulo.ZConexao = nil) then Exit;
@@ -468,7 +468,7 @@ begin
   LCliente.Caption := ECliente.Text;
 
   if FCliCodigo = '0208' then
-    LPEca.Caption := EPeca.Text + ' - COD AUSTï¿½MPERA: ' + FPecaCodPecaCli
+    LPEca.Caption := EPeca.Text + ' - COD AUSTÊMPERA: ' + FPecaCodPecaCli
   else
     LPEca.Caption := EPeca.Text;
 
@@ -479,7 +479,7 @@ begin
   //LDesenho.Caption := EDesenho.Text;
   LMaterial.Caption := EMaterial.Text;
 
-   If Application.MessageBox('Deseja inserir a imagem da peï¿½a no CQ?', 'Aviso de impressï¿½o!', MB_YESNO+MB_IconQuestion) = IDYes then
+   If Application.MessageBox('Deseja inserir a imagem da peça no CQ?', 'Aviso de impressão!', MB_YESNO+MB_IconQuestion) = IDYes then
   begin
   // FIGURA e NULL/vazia em muitas pecas (e o caminho pode nao existir na rede).
   // O codigo BDE chamava LoadFromFile direto e levantava excecao nesses casos.
@@ -642,7 +642,7 @@ begin
   LData.Caption := DataOsComoTexto;
  // LDesenho.Caption := EDesenho.Text;
 
-   If Application.MessageBox('Deseja inserir a imagem da peï¿½a no CQ?', 'Aviso de impressï¿½o!', MB_YESNO+MB_IconQuestion) = IDYes then
+   If Application.MessageBox('Deseja inserir a imagem da peça no CQ?', 'Aviso de impressão!', MB_YESNO+MB_IconQuestion) = IDYes then
   begin
   // FIGURA e NULL/vazia em muitas pecas (e o caminho pode nao existir na rede).
   // O codigo BDE chamava LoadFromFile direto e levantava excecao nesses casos.
@@ -739,7 +739,7 @@ IdMessage.CharSet := 'ISO-8859-1';
 IdMessage.Recipients.EMailAddresses := destinatario;
 IdMessage.CCList.EMailAddresses := CC;
 IdMessage.Subject := '[AMORTRAT] Envio do Certificado de Qualidade OS:'+FOsCodigo;
-IdMessage.Body.Add('Este e-mail refere-se ï¿½ emissï¿½o do Certificado de Qualidade para:');
+IdMessage.Body.Add('Este e-mail refere-se à emissão do Certificado de Qualidade para:');
 IdMessage.Body.Add('');
 IdMessage.Body.Add('Cliente.: ' + FCliRazao);
 IdMessage.Body.Add('OS......: ' + FOsCodigo);
@@ -761,7 +761,7 @@ IdSMTP.Send(IdMessage);
 finally
 IdSMTP.Disconnect;
 end;
-Application.MessageBox(PWideChar('O CQ foi enviado com sucesso para o(s) endereï¿½o(s): '+destinatario+' '+CC +'!'), 'Confirmaï¿½ï¿½o', MB_ICONINFORMATION + MB_OK);
+Application.MessageBox(PWideChar('O CQ foi enviado com sucesso para o(s) endereço(s): '+destinatario+' '+CC +'!'), 'Confirmação', MB_ICONINFORMATION + MB_OK);
 
 
 

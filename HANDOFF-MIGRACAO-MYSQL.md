@@ -887,6 +887,44 @@ Roteiro sugerido, do menos ao mais arriscado:
   `UApontamento`/`UApontamento2` deveriam estar ativos — `tb_apontamentos` tem
   1.318 registros.
 
+### 7.5 🔴 DLLs x86/x64 misturadas no diretório do executável (2026-08-30)
+
+**O `amortrat.exe` é Win32.** Todas as DLLs nativas precisam ser **x86**. No
+diretório do projeto elas estão misturadas:
+
+| DLL | Arquitetura | |
+|---|---|---|
+| `libxml2.dll` | x86 | ✅ |
+| `iconv.dll` | x86 | ✅ |
+| `libxmlsec.dll`, `libxmlsec-openssl.dll` | x86 | ✅ |
+| `zlib1.dll` | **x64** | ❌ dependência da libxml2 x86 |
+| `libiconv.dll`, `libiconv-2.dll`, `libcharset-1.dll` | **x64** | ❌ |
+| `libxmlsec1.dll`, `libxmlsec1-openssl.dll`, `libltdl-7.dll` | **x64** | ❌ |
+| `libeay32.dll`, `ssleay32.dll` | **x64** | ❌ OpenSSL do ACBr |
+| `libcrypto-*.dll`, `libssl-*.dll` | **x64** | ❌ |
+
+**Sintoma:** `EACBrXmlException: 'Não foi possível carregar a biblioteca
+LibXml2.'` — a `libxml2.dll` é x86 e carrega, mas falha ao resolver a
+`zlib1.dll` x64.
+
+Alguém já começou a corrigir: existem `*.x64-bak` (as x64 renomeadas) e o
+diretório `C:\Amortrat\novas DLL` tem algumas x86 — **inclusive uma `zlib1.dll`
+x86**, que é justamente a que falta. A substituição ficou pela metade.
+
+**Impacto:** a assinatura de XML (`xsLibXml2`) não funciona. O `UNf` configura
+`SSLXmlSignLib = xsLibXml2` no DFM, então **a emissão de NF-e vai falhar**
+enquanto isso não for resolvido. Não é problema do código migrado — é ambiente.
+
+**Como conferir a arquitetura de uma DLL:**
+
+```bash
+off=$(od -An -tu4 -j60 -N4 X.dll | tr -d ' ')
+od -An -tx2 -j$((off+4)) -N2 X.dll    # 014c = x86 · 8664 = x64
+```
+
+> O monitor de status (`UStatusMonitor`) **não** é afetado: ele não assina XML,
+> só faz TLS mútuo, e por isso não define `SSLXmlSignLib`.
+
 ---
 
 ## 8. Checklist para migrar o próximo form
