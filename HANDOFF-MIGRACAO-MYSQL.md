@@ -887,33 +887,63 @@ Roteiro sugerido, do menos ao mais arriscado:
   `UApontamento`/`UApontamento2` deveriam estar ativos — `tb_apontamentos` tem
   1.318 registros.
 
-### 7.5 🔴 DLLs x86/x64 misturadas no diretório do executável (2026-08-30)
-
-**O `amortrat.exe` é Win32.** Todas as DLLs nativas precisam ser **x86**. No
-diretório do projeto elas estão misturadas:
-
-| DLL | Arquitetura | |
-|---|---|---|
-| `libxml2.dll` | x86 | ✅ |
-| `iconv.dll` | x86 | ✅ |
-| `libxmlsec.dll`, `libxmlsec-openssl.dll` | x86 | ✅ |
-| `zlib1.dll` | **x64** | ❌ dependência da libxml2 x86 |
-| `libiconv.dll`, `libiconv-2.dll`, `libcharset-1.dll` | **x64** | ❌ |
-| `libxmlsec1.dll`, `libxmlsec1-openssl.dll`, `libltdl-7.dll` | **x64** | ❌ |
-| `libeay32.dll`, `ssleay32.dll` | **x64** | ❌ OpenSSL do ACBr |
-| `libcrypto-*.dll`, `libssl-*.dll` | **x64** | ❌ |
+### 7.5 DLLs x86/x64 — `zlib1.dll` trocada (RESOLVIDO em 2026-08-30)
 
 **Sintoma:** `EACBrXmlException: 'Não foi possível carregar a biblioteca
-LibXml2.'` — a `libxml2.dll` é x86 e carrega, mas falha ao resolver a
-`zlib1.dll` x64.
+LibXml2.'` na abertura do sistema.
 
-Alguém já começou a corrigir: existem `*.x64-bak` (as x64 renomeadas) e o
-diretório `C:\Amortrat\novas DLL` tem algumas x86 — **inclusive uma `zlib1.dll`
-x86**, que é justamente a que falta. A substituição ficou pela metade.
+**Causa:** o `amortrat.exe` é Win32. A `libxml2.dll` do diretório **é x86 e
+está correta**, mas ela importa `iconv.dll` e **`zlib1.dll`** — e a `zlib1.dll`
+presente era **x64**. O Windows falha ao resolver a dependência e reporta erro
+193 na própria `libxml2.dll`, o que despista o diagnóstico.
 
-**Impacto:** a assinatura de XML (`xsLibXml2`) não funciona. O `UNf` configura
-`SSLXmlSignLib = xsLibXml2` no DFM, então **a emissão de NF-e vai falhar**
-enquanto isso não for resolvido. Não é problema do código migrado — é ambiente.
+Dependências reais (via `tdump -em libxml2.dll`):
+
+```
+KERNEL32.dll  WSOCK32.dll  msvcrt.dll  iconv.dll  zlib1.dll
+```
+
+**Correção aplicada:** `zlib1.dll` substituída pela x86 de
+`C:\Amortrat\novas DLL` (107.520 bytes). A x64 original ficou em
+`C:\Amortrat\_dlls_backup_20260830_170227\zlib1.dll.x64-original`.
+
+Comprovado com `LoadLibraryEx` num processo 32-bit:
+
+| DLL | antes | depois |
+|---|---|---|
+| `zlib1.dll` | erro 193 | **OK** |
+| `libxml2.dll` | erro 193 | **OK** |
+| `libxmlsec.dll` | erro 193 | **OK** |
+
+#### Por que funcionava antes e quebrou na máquina nova?
+
+**Não é o Windows 11.** As DLLs x64 estão no diretório desde antes: o backup
+`_dlls_backup_20260823_010706/substituidas/` guarda arquivos **idênticos** aos
+que estavam em uso (mesmo tamanho e data), ou seja, a tentativa de troca de
+23/08 foi revertida.
+
+A hipótese mais provável é que a máquina Windows 10 tivesse uma `zlib1.dll`
+**x86** acessível pelo PATH global (instalada por outro software) — o Windows a
+encontrava antes de chegar na do diretório. Esta máquina não tem nenhuma
+`zlib1.dll` em `SysWOW64`/`System32`. Não dá para confirmar sem acesso à
+máquina antiga.
+
+#### As outras DLLs x64 do diretório são inertes
+
+Continuam x64 (`libeay32`, `ssleay32`, `libcrypto-*-x64`, `libssl-*-x64`,
+`libxmlsec1*`, `libiconv*`, `libcharset-1`, `libltdl-7`), **mas não são
+carregadas neste projeto**:
+
+- **OpenSSL** — o Synapse do ACBr aceita vários nomes, entre eles
+  `libcrypto-1_1.dll` e `libssl-1_1.dll`, que existem em **x86** no
+  `C:\Windows\SysWOW64`.
+- **`libxmlsec*`** — só serve para `SSLXmlSignLib = xsXmlSec`. O projeto usa
+  **`xsLibXml2`** (`ACBrDFeXsLibXml2.pas`), que assina com libxml2 + OpenSSL.
+
+⚠️ **Ainda não testado na prática.** Se a emissão de NF-e falhar por OpenSSL,
+o caminho é remover/renomear `libeay32.dll` e `ssleay32.dll` (x64) do
+diretório, para o ACBr cair nas `libcrypto-1_1.dll`/`libssl-1_1.dll` x86 do
+sistema.
 
 **Como conferir a arquitetura de uma DLL:**
 
@@ -922,8 +952,10 @@ off=$(od -An -tu4 -j60 -N4 X.dll | tr -d ' ')
 od -An -tx2 -j$((off+4)) -N2 X.dll    # 014c = x86 · 8664 = x64
 ```
 
-> O monitor de status (`UStatusMonitor`) **não** é afetado: ele não assina XML,
-> só faz TLS mútuo, e por isso não define `SSLXmlSignLib`.
+> O monitor de status (`UStatusMonitor`) não define `SSLXmlSignLib`: a consulta
+> de status não assina XML, só faz TLS mútuo. Por isso ele não depende da
+> libxml2 nem carregava — era só a configuração indevida que eu havia copiado
+> do UNf.
 
 ---
 
