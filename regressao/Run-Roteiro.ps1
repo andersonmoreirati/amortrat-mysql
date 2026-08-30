@@ -36,7 +36,12 @@
     esperar          ms                       -> pausa explicita (use pouco)
     aguardar-ocioso  timeout                  -> espera a janela responder
 
-  Seletor: classe (+ indice, opcional) ou chave "classe@left,top" ou texto.
+  Seletor, em ordem de preferencia:
+    "chave": "TEdit@17,88"    exato (classe + posicao)
+    "pos":   "17,88"          SO a posicao - use quando a classe mudou entre
+                              as versoes (TRxLookupEdit -> TComboBox)
+    "classe" + "indice"       n-esima ocorrencia da classe
+    "texto":  "*Entrar*"      por legenda (aceita curinga)
 #>
 
 param(
@@ -79,13 +84,19 @@ Log "processo iniciado: PID $($proc.Id)"
 $janela = $null
 $erros  = 0
 
-function Resolver-Controle($tree, $passo) {
-  if ($passo.PSObject.Properties.Name -contains 'chave' -and $passo.chave) {
-    return (Find-Control -Tree $tree -Key $passo.chave)
-  }
-  $cls = if ($passo.PSObject.Properties.Name -contains 'classe') { $passo.classe } else { $null }
-  $idx = if ($passo.PSObject.Properties.Name -contains 'indice') { [int]$passo.indice } else { 0 }
-  $txt = if ($passo.PSObject.Properties.Name -contains 'texto')  { $passo.texto }  else { $null }
+function Resolve-ControlePasso($tree, $passo) {
+  $tem = { param($n) $passo.PSObject.Properties.Name -contains $n }
+
+  if ((& $tem 'chave') -and $passo.chave) { return (Find-Control -Tree $tree -Key $passo.chave) }
+
+  $cls = if (& $tem 'classe') { $passo.classe } else { $null }
+
+  # 'pos' e o seletor preferido quando o componente mudou de classe entre as
+  # duas versoes mas ficou no mesmo lugar (ver Find-Control).
+  if ((& $tem 'pos') -and $passo.pos) { return (Find-Control -Tree $tree -Pos $passo.pos -Class $cls) }
+
+  $idx = if (& $tem 'indice') { [int]$passo.indice } else { 0 }
+  $txt = if (& $tem 'texto')  { $passo.texto }  else { $null }
   return (Find-Control -Tree $tree -Class $cls -Index $idx -TextLike $txt)
 }
 
@@ -119,7 +130,7 @@ try {
 
       'escrever' {
         $tree = @(Get-ControlTree -Root ([IntPtr]$janela.Handle))
-        $c = Resolver-Controle $tree $passo
+        $c = Resolve-ControlePasso $tree $passo
         if (-not $c) { Log "ERRO: controle nao encontrado para 'escrever' ($($passo | ConvertTo-Json -Compress))"; $erros++; continue }
         $v = $passo.valor
         if ($v -eq '$USUARIO') { $v = $Usuario }
@@ -131,7 +142,7 @@ try {
 
       'clicar' {
         $tree = @(Get-ControlTree -Root ([IntPtr]$janela.Handle))
-        $c = Resolver-Controle $tree $passo
+        $c = Resolve-ControlePasso $tree $passo
         if (-not $c) { Log "ERRO: controle nao encontrado para 'clicar' ($($passo | ConvertTo-Json -Compress))"; $erros++; continue }
         Invoke-ControlClick -Handle ([IntPtr]$c.Handle)
         Log "clicar [$($c.Class)@$($c.Left),$($c.Top)] '$($c.Text)'"
@@ -140,7 +151,7 @@ try {
 
       'combo' {
         $tree = @(Get-ControlTree -Root ([IntPtr]$janela.Handle))
-        $c = Resolver-Controle $tree $passo
+        $c = Resolve-ControlePasso $tree $passo
         if (-not $c) { Log "ERRO: combo nao encontrado"; $erros++; continue }
         if (Select-ComboItem -Handle ([IntPtr]$c.Handle) -Item $passo.valor) {
           Log "combo [$($c.Class)@$($c.Left),$($c.Top)] = '$($passo.valor)'"

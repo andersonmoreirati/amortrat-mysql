@@ -49,7 +49,10 @@ public class AUI {
   [DllImport("user32")] public static extern bool GetClientRect(IntPtr h, out RECT r);
   [DllImport("user32")] public static extern bool ScreenToClient(IntPtr h, ref POINT p);
   [DllImport("user32", CharSet=CharSet.Unicode)] public static extern IntPtr SendMessageW(IntPtr h, uint m, IntPtr w, IntPtr l);
-  [DllImport("user32", CharSet=CharSet.Unicode)] public static extern IntPtr SendMessageStr(IntPtr h, uint m, IntPtr w, string l);
+  // Mesma API, sobrecarga com string no lParam (WM_SETTEXT, CB_FINDSTRINGEXACT).
+  // EntryPoint e obrigatorio: 'SendMessageStr' nao existe em user32.
+  [DllImport("user32", EntryPoint="SendMessageW", CharSet=CharSet.Unicode)]
+  public static extern IntPtr SendMessageStr(IntPtr h, uint m, IntPtr w, string l);
   [DllImport("user32")] public static extern IntPtr PostMessageW(IntPtr h, uint m, IntPtr w, IntPtr l);
   [DllImport("user32")] public static extern bool SetForegroundWindow(IntPtr h);
   [DllImport("user32")] public static extern IntPtr SetFocus(IntPtr h);
@@ -215,16 +218,35 @@ function Get-ControlKey {
 }
 
 function Find-Control {
-  <#  Localiza um controle pela chave, ou por classe + indice de ocorrencia.  #>
+  <#  Localiza um controle por chave, por POSICAO, ou por classe + indice.
+
+      A busca por posicao ("18,51") existe para os casos em que a migracao
+      trocou o componente mas manteve o lugar na tela: o ELogin, por exemplo, e
+      TRxLookupEdit no Paradox e TComboBox no MySQL, ambos em 18,51. Um seletor
+      por classe teria de ser diferente para cada versao, o que quebraria a
+      premissa de rodar o MESMO roteiro nos dois.
+
+      Tolerancia de +-2 px absorve diferenca de borda entre os componentes.  #>
   param(
     [Parameter(Mandatory)]$Tree,
     [string]$Key,
+    [string]$Pos,
     [string]$Class,
     [int]$Index = 0,
     [string]$TextLike
   )
   if ($Key) {
     foreach ($c in $Tree) { if ((Get-ControlKey $c) -eq $Key) { return $c } }
+    return $null
+  }
+  if ($Pos) {
+    $p = $Pos -split ','
+    $L = [int]$p[0]; $T = [int]$p[1]
+    $cand = @($Tree | Where-Object {
+      [Math]::Abs($_.Left - $L) -le 2 -and [Math]::Abs($_.Top - $T) -le 2 -and
+      (-not $Class -or $_.Class -eq $Class)
+    })
+    if ($cand.Count -gt 0) { return $cand[0] }
     return $null
   }
   $cand = @($Tree | Where-Object { (-not $Class -or $_.Class -eq $Class) -and

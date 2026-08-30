@@ -1,17 +1,18 @@
 {
   "nome": "00-abertura",
-  "descricao": "Roteiro minimo de fumaca: abre o sistema, faz login e captura o menu principal. Serve para calibrar as classes de janela antes de escrever os roteiros de verdade.",
+  "descricao": "Fumaca: abre o sistema, faz login e captura o menu principal. Seletores confirmados no snapshot real da versao Paradox (janela TFLogin, 'Login de Usuario').",
+  "observacao": "O campo de usuario e TRxLookupEdit no Paradox e TComboBox no MySQL, ambos em 18,51 - por isso o seletor e por POSICAO, nao por classe. A senha (TEdit@17,88) e os botoes sao iguais nos dois.",
   "passos": [
     { "acao": "aguardar-janela", "classe": "TFLogin", "timeout": 60 },
     { "acao": "snapshot", "nome": "01-login" },
 
-    { "acao": "escrever", "classe": "TEdit", "indice": 0, "valor": "$USUARIO" },
-    { "acao": "escrever", "classe": "TEdit", "indice": 1, "valor": "$SENHA" },
+    { "acao": "escrever", "pos": "18,51", "valor": "$USUARIO" },
+    { "acao": "escrever", "pos": "17,88", "valor": "$SENHA" },
     { "acao": "snapshot", "nome": "02-login-preenchido" },
 
-    { "acao": "clicar", "classe": "TIAeverButton", "indice": 0 },
-    { "acao": "aguardar-janela", "classe": "TFPrincipal", "timeout": 60 },
-    { "acao": "aguardar-ocioso", "timeout": 60 },
+    { "acao": "clicar", "classe": "TIAeverButton", "texto": "*Entrar*" },
+    { "acao": "aguardar-janela", "classe": "TFPrincipal", "timeout": 90 },
+    { "acao": "aguardar-ocioso", "timeout": 90 },
     { "acao": "snapshot", "nome": "03-menu-principal" }
   ]
 }

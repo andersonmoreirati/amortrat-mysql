@@ -111,10 +111,6 @@ que o outro não tem, a diferença aparece como falso positivo.
 | `aguardar-ocioso` | `timeout` |
 | `esperar` | `ms` (use o mínimo possível) |
 
-**Seletor:** `classe` + `indice`, ou `chave` (`"TEdit@120,48"`), ou `texto`
-(aceita curinga). A chave é a forma mais estável — pegue-a de um snapshot
-anterior.
-
 ## Descobrindo as classes e seletores de uma tela
 
 Rode o `00-abertura`, abra o JSON do snapshot e veja as chaves reais:
@@ -124,3 +120,30 @@ Rode o `00-abertura`, abra o JSON do snapshot e veja as chaves reais:
   ConvertFrom-Json).Controles |
   Select-Object Key, Class, Text, Enabled | Format-Table -AutoSize
 ```
+
+## Seletores — qual usar
+
+| Forma | Exemplo | Quando |
+|---|---|---|
+| `chave` | `"TEdit@17,88"` | classe **e** posição batem nos dois |
+| `pos` | `"18,51"` | **a classe mudou** entre as versões |
+| `classe`+`indice` | `"TEdit"`, `2` | n-ésima ocorrência |
+| `texto` | `"*Entrar*"` | por legenda (aceita curinga) |
+
+O `pos` existe por um caso real encontrado logo no primeiro roteiro: o campo de
+usuário do login é `TRxLookupEdit` no Paradox e `TComboBox` no MySQL — **mesma
+posição, classe diferente**. Um seletor por classe exigiria roteiros distintos
+para cada versão, o que anularia a proposta de rodar o mesmo roteiro nos dois.
+
+Tolerância de ±2 px absorve diferença de borda entre componentes.
+
+## Tela de login — seletores confirmados
+
+Do snapshot real (`TFLogin`, "Login de Usuário"):
+
+| Campo | Paradox | MySQL | Seletor |
+|---|---|---|---|
+| Usuário | `TRxLookupEdit@18,51` | `TComboBox@18,51` | `"pos": "18,51"` |
+| Senha | `TEdit@17,88` | idem | `"pos": "17,88"` |
+| Entrar | `TIAeverButton@30,143` | idem | `"texto": "*Entrar*"` |
+| Sair | `TIAeverButton@110,143` | idem | |
