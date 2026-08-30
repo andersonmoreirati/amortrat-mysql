@@ -2,7 +2,7 @@
 
 > Documento de continuidade. Escrito para que outra máquina/sessão retome o
 > trabalho sem repetir análise nem repetir erros.
-> Última atualização: **2026-08-25**
+> Última atualização: **2026-08-30**
 
 ---
 
@@ -23,7 +23,7 @@ Paradox for desativado.
 | `D:\AMORTRAT\code - Copy - Copy\code` **nunca** é modificado | é o código de produção Paradox |
 | `D:\AMORTRAT\BD\Copy` é **somente leitura** | apesar do nome, é o diretório de dados Paradox de PRODUÇÃO (é o alias BDE) |
 | Ao trocar um componente, preservar **todas** as propriedades | Left, Top, Width, Height, TabOrder, MaxLength, CharCase e **todos** os eventos |
-| `UModulo` continua BDE | sustenta os forms ainda não migrados; só perde o BDE no fim |
+| ~~`UModulo` continua BDE~~ | **cumprida em 2026-08-30**: perdeu o BDE após `principal` e `UNf` |
 
 ---
 
@@ -42,7 +42,8 @@ Git / GitHub ....... github.com/andersonmoreirati/amortrat-mysql (SSH)
                      git em: C:\Program Files\Git  (adicionar ao PATH a cada shell nova)
 ```
 
-**Banco MySQL** — credenciais em `D:\AMORTRAT\mysql\code\amortrat.ini`:
+**Banco MySQL** — credenciais em `amortrat.ini`, que fica no diretório do
+projeto e **está no `.gitignore`** (modelo em `amortrat.ini.example`):
 
 ```ini
 [BD]
@@ -50,19 +51,31 @@ Host=amortrat.com.br
 Porta=3306
 Banco=amortrat_dev
 Usuario=amortrat_dev
-Senha=Amortrat8141
+Senha=<ver amortrat.ini local>
 ```
+
+Servidor: **MySQL 8.0.37**.
 
 Consulta pela linha de comando (usada o tempo todo para validar SQL):
 
 ```bash
-mysql -h amortrat.com.br -u amortrat_dev -p'Amortrat8141' amortrat_dev -e "SELECT ..."
+mysql -h amortrat.com.br -u amortrat_dev -p'<senha>' --skip-ssl amortrat_dev -e "SELECT ..."
 ```
+
+⚠️ **`--skip-ssl` é obrigatório**: o servidor usa certificado auto-assinado e o
+cliente recusa a conexão sem isso (`ERROR 2026: Certificate verification
+failure`). A aplicação já faz o mesmo — ver `UModulo.DataModuleCreate`:
+`usessl=false` e `MYSQL_OPT_SSL_VERIFY_SERVER_CERT=FALSE`.
+
+Nesta máquina não há cliente MySQL instalado (o instalador oficial exige
+elevação). Usei o cliente **MariaDB portátil** (zip, sem instalação):
+`https://archive.mariadb.org/mariadb-11.4.4/winx64-packages/mariadb-11.4.4-winx64.zip`
+→ `bin/mariadb.exe`, compatível com o protocolo do MySQL 8.
 
 ### Compilação
 
 **Só pelo IDE (F9).** O build por linha de comando **não funciona** neste
-projeto: as bibliotecas exigem flags conflitantes — `$T+` quebra o
+projeto: as bibliotecas exigiam flags conflitantes — `$T+` quebrava o
 `FixBDE4GbBug`, `$T-` quebra o Indy. O IDE resolve com DCUs pré-compilados.
 
 Exceção: dá para compilar um `.dpr` **console isolado** para testar unidades sem
@@ -76,7 +89,9 @@ dcc32.exe teste.dpr -U"$(BDS)\lib;D:\AMORTRAT\mysql\code" -I"$(BDS)\lib" -\$Q+ -
 
 ---
 
-## 3. Estado atual — 11 migrados, 2 faltam
+## 3. Estado atual — ✅ MIGRAÇÃO DE CÓDIGO COMPLETA (2026-08-30)
+
+**Todas as 19 units do `amortrat.dpr` estão 100% MySQL. O BDE saiu do projeto.**
 
 | Unit | Linhas | Status | Observação |
 |---|---:|---|---|
@@ -85,7 +100,7 @@ dcc32.exe teste.dpr -U"$(BDS)\lib;D:\AMORTRAT\mysql\code" -I"$(BDS)\lib" -\$Q+ -
 | `Uclientes` | 1.358 | ✅ | fix máscara CNPJ/telefone, `tb_email` |
 | `UPecas` | 1.385 | ✅ | fix `tb_equipamentos*` |
 | `ULocalizar` | 388 | ✅ | SQL parametrizado |
-| `UOS` | 2.563 | ✅ | o mais complexo: transações, 7 combos |
+| `UOS` | 2.563 | ✅ | transações, 7 combos |
 | `URelatOS` | 260 | ✅ | report repontado (27 bindings) |
 | `URelatCQ` | 795 | ✅ | fecha o fluxo da OS |
 | `UReajuste` | 358 | ✅ | UPDATE em lote parametrizado |
@@ -94,24 +109,80 @@ dcc32.exe teste.dpr -U"$(BDS)\lib;D:\AMORTRAT\mysql\code" -I"$(BDS)\lib" -\$Q+ -
 | `URelatorios` | 398 | ✅ | report do UGerrelat |
 | `UBCrypt` | 560 | ✅ | **nova** — validada por 17 vetores oficiais |
 | `USplash`, `ufrmStatus` | 28 | — | sem banco |
-| **`principal`** | **773** | 🔴 **FALTA** | menu; `QResumo`/`QOs`/`QRank` + `TBConfig.FindKey` |
-| **`UNf`** | **3.517** | 🔴 **FALTA** | o maior; ACBr/NFe; ~150 warnings pré-existentes |
-| `UModulo` | 528 | 🟡 híbrido | só perde o BDE depois dos 2 acima |
+| **`principal`** | **772** | ✅ **2026-08-30** | 11 TZQuery; ver §3.1 |
+| **`UNf`** | **3.516** | ✅ **2026-08-30** | o maior; 14 TZQuery; ver §3.2 |
+| **`UModulo`** | **198** | ✅ **2026-08-30** | era 531; perdeu todo o BDE; ver §3.3 |
 
 > `UUsuarios` aparece como "híbrido" em varreduras automáticas por causa dos 5
-> `TDBCheckBox` — mas eles são **genéricos** sobre `TDataSource` (não BDE) e
-> estão ligados a um `TZTable`. Está migrado.
+> `TDBCheckBox` — mas eles são **genéricos** sobre `TDataSource` (não BDE).
 
-### Ordem recomendada para o que falta
+### 3.1 `principal` — o que mudou
 
-1. **`principal`** (773) — menu/porta de entrada. Atenção: tem `QOsCODIGO_1` e
-   `QOsCODIGO_2`, ou seja, **as mesmas colunas duplicadas de join** do UGerrelat
-   (ver armadilha #7).
-2. **`UNf`** (3.517) — deixar por último. Tem ~34 TFields próprios, integração
-   ACBr/NFe e é mutuamente dependente do `UOS` (`FOs.varNF`).
+- `QResumo`/`QOs`/`QRank` (TRxQuery) → `TZQuery`; **+8 TZQuery locais**
+  (`QConfig`, `QVendasGerais`, `QOrdensNaoFinalizadas`, `QPesoTotal`,
+  `QOrdensDoAno`, `QOrdensFinalizadasDoAno`, `QExpClientes`, `QExpPecas`)
+  substituindo os datasets BDE do UModulo usados nas exportações Excel/PowerBI.
+- **TFields persistentes removidos.** `QOsCODIGO` tinha `Size = 8` e
+  `tb_os.CODIGO` é `varchar(9)`: o número da OS sairia truncado
+  (`098800/26` → `098800/2`) na mensagem enviada por WhatsApp (armadilha #15).
+- `QOsCODIGO_1`/`QOsCODIGO_2` eliminados reescrevendo o SELECT sem as colunas
+  duplicadas de JOIN (armadilha #7).
+- `order by 12` / `order by 3` (posicionais) → `order by LEADTIME` / `VALOR_G`.
+- `(:pNow - A.DATA)` → `DATEDIFF(:pNow, A.DATA)`.
+- `TBConfig.FindKey` → `LerConfig(n)` sobre `tb_config`.
+- `FormActivate` remonta o Caption a partir de `FCaptionBase` — antes acumulava
+  ` <<< AMBIENTE DE HOMOLOGAÇAO >>>` a cada ativação.
 
-Depois dos dois: `UModulo` perde o BDE → desliga o sync com Paradox → roda o fix
-de encoding (seção 7).
+### 3.2 `UNf` — o que mudou
+
+- 8 TRxQuery → TZQuery; **+6 TZQuery locais**: `QNf` (leitura), `QNfCmd`,
+  `QNfItensCmd`, `QNfRefCmd` (comandos), `QCli`, `QCfg`.
+- `EFantasia` (TRxLookupEdit sobre `Modulo.DSClientes`) → `TComboBox` +
+  `TStringList` (§4.3). `OnCloseUp` + `OnKeyUp` viraram um `OnChange`.
+- **53 TFields persistentes removidos** — vários truncariam dado real:
+
+  | TField | Size | Coluna MySQL | Efeito |
+  |---|---:|---|---|
+  | `QOsCODIGO`, `QOS_FinCODIGO` | 7 | `varchar(9)` | corta a chave da OS |
+  | `QNF_ItensCOD_OS` | 8 | `varchar(9)` | confirmado no banco: `098721/26` |
+  | `QNF_ItensCODIGO` | 10 | `varchar(20)` | corta o código do item |
+  | `QNF_ItensDESCRICAO` | 200 | `varchar(300)` | corta descrição fiscal |
+  | `QOsFINALIZADA` | TBooleanField | `tinyint(1)` | `EDatabaseError` (#6) |
+
+- **Pré-reserva de código** (§4.4) com tratamento de colisão 1062, guarda no
+  DELETE (`COD_CLI IS NULL AND NATUREZA IS NULL AND VALOR IS NULL`).
+- **INSERTs explícitos nos laços.** O original chamava `Append` sem `Post` (o
+  `Post` estava até comentado) e funcionava por efeito colateral: o `TDataSet`
+  do BDE faz post implícito do registro pendente quando o `Append` seguinte é
+  chamado. Com SQL isso não existe.
+- NF + itens + referências gravam em **uma transação**; o envio da NF-e fica
+  **fora** dela (é chamada a webservice, não pode segurar transação aberta).
+
+### 3.3 `UModulo` — perdeu o BDE
+
+- 531 → **198 linhas**; DFM 1920 → **149** (resta só o `TImageList`).
+- Removidos 18 `TTable`, 16 `TDataSource`, 5 `TRxQuery`, ~190 `TField`, os
+  `AddPassword('99866')` e os `Active := True` que abriam todos os cursores na
+  abertura do sistema.
+- Removidos os 5 handlers `AfterPost` (`FlushBuffers` + `DBISaveChanges`):
+  forçavam o BDE a gravar o buffer no `.DB`. **Não** eram o sync
+  Paradox→MySQL, que é processo externo (colunas `sync_hash`/`sync_at`/
+  `sync_origin`).
+- `uses`: saem `DBTables`, `BDE`, `RxQuery`, `DBClient`, `FixBDE4GbBug`.
+- `FixBDE4GbBug` removido do `.dpr` **e** do `.dproj` (era patch do bug de 4Gb
+  do BDE — sem BDE, não tem função).
+
+**Superfície do `Modulo` usada pelos forms** (nenhuma BDE):
+`ZConexao` (198×), `RetZero` (68×), `NovaLeitura` (24×), `Number` (5×),
+`UsuarioLogado` (2×).
+
+> `UApontamento`/`UApontamento2` ainda referenciam `Modulo.TB*`, mas estão
+> **fora do `.dpr`** (forms órfãos, §7.4) — não compilam com o projeto. Se um
+> dia forem reativados, precisarão ser migrados antes.
+
+### Próximo passo: teste geral
+
+O código está migrado, mas **só o login foi validado em uso real**. Ver §7.2.
 
 ---
 
@@ -594,6 +665,78 @@ ZConexao.Commit;             // emite COMMIT → reseta snapshot, restaura AutoC
 `StartTransaction` com `AutoCommit=True` é a forma suportada pelo ZeosLib 8.x
 para forçar um ciclo BEGIN/COMMIT sem conflito com os contadores internos.
 
+### #21 — O projeto compila com `-$B+`: **não** há curto-circuito booleano (2026-08-30)
+
+`amortrat.cfg` liga `-$B+` (BOOLEVAL ON). Os dois lados de um `and`/`or` são
+**sempre** avaliados. Padrões como este continuam tocando o dataset em EOF:
+
+```pascal
+until (Q.Eof) or (Q.FieldByName('LEADTIME').AsFloat <= 10);
+```
+
+Ao migrar um laço assim, leia o campo numa variável antes:
+
+```pascal
+if Q.Eof then Lead := 0 else Lead := Q.FieldByName('LEADTIME').AsFloat;
+until (Q.Eof) or (Lead <= 10);
+```
+
+Flags completas do `.cfg`: `-$B+ -$C+ -$D+ -$G+ -$H+ -$I+ -$J+ -$L+ -$N+ -$O+
+-$P+ -$Q+ -$R- -$T+ -$V+ -$X+`.
+
+### #22 — `Append` sem `Post` no BDE funciona por post implícito (2026-08-30)
+
+Encontrado no `UNf.BTGravarClick`: um laço fazia `TBNf_Itens.Append` a cada
+linha da grid e **o `Post` estava comentado**. Só o último registro era postado
+explicitamente, no `try` do final.
+
+Não era bug: o `TDataSet` da VCL faz `CheckBrowseMode` ao entrar em `Append`,
+que **posta implicitamente** o registro pendente. O laço gravava tudo por efeito
+colateral.
+
+Com SQL isso não existe — cada iteração precisa de um `INSERT` explícito. Se
+traduzir o laço "ao pé da letra", **só a última linha da NF é gravada**.
+
+### #23 — Ao substituir bloco de DFM por número de linha, confira o que há no meio
+
+Substituí o intervalo das queries do `UNf.dfm` assumindo que só havia
+`TRxQuery` ali. No meio estavam `TabEnter1`, `ACBrNFe1`, `ACBrNFeDANFeRL1` e
+`ACBrMail1` — **apagados sem erro de sintaxe**, porque o DFM continuou
+balanceado. O `.pas` referenciava os quatro.
+
+Detectado comparando componentes antes/depois:
+
+```bash
+grep -oE "^ +object [A-Za-z_0-9]+: T[A-Za-z_0-9]+" original.dfm | sort > /tmp/a
+grep -oE "^ +object [A-Za-z_0-9]+: T[A-Za-z_0-9]+" novo.dfm     | sort > /tmp/b
+comm -23 /tmp/a /tmp/b     # removidos: só deveriam ser TField/TRxQuery
+```
+
+**Rode essa comparação sempre.** O check de balanceamento (#10) não pega isto.
+
+### #24 — Formatação numérica: escolha o `As*` pelo tipo REAL da coluna (2026-08-30)
+
+Ao remover TFields persistentes de dados fiscais, o acesso por `FieldByName`
+precisa casar com o tipo do banco, senão muda arredondamento e texto:
+
+| Coluna MySQL | Era | Use |
+|---|---|---|
+| `decimal(15,4)` (VALOR, PRECO_TOTAL, ICMS_BASE) | `TCurrencyField` | `.AsCurrency` — `Currency` tem exatamente 4 casas |
+| `double` (PESO, QUANTIDADE, PRECO_UNITARIO) | `TFloatField` | `.AsFloat` |
+| `date` (DATAE, DATA_FIM) | `TDateField` | `.AsDateTime` / param `.AsDate` |
+
+E troque as conversões que passavam por string:
+
+```pascal
+StrToFloat(campo.AsString)  ->  campo.AsFloat
+StrToCurr(campo.AsString)   ->  campo.AsCurrency
+```
+
+Mesmo valor, sem depender de como o ZeosLib formata `.Text` para o tipo que
+inferir. Onde o código **exibia** `campo.AsString` de um `TCurrencyField`, use
+`FloatToStr(campo.AsFloat)`: é literalmente o que `TFloatField.GetAsString`
+fazia, então o texto sai idêntico.
+
 ---
 
 ## 6. Detalhes específicos que custaram análise
@@ -688,15 +831,39 @@ Preservar `D:\AMORTRAT\BD\Copy` até o fix estar validado. O Paradox está ínte
 
 ### 7.2 Testes funcionais pendentes
 
-Só o **login** foi validado em uso real. Falta exercitar:
+**Esta é a prioridade agora que o código está migrado.** Só o **login** e a
+geração de relatório do `UGerrelat` foram exercitados em uso real.
 
-- **FOs**: criar OS (código `NNNNNN/AA` + pré-reserva), gravar+imprimir, finalizar,
-  desfinalizar, terceirizar — em especial numa das **12 OS com `FORNECEDOR`
-  `0027`/`0292`**, que era o caso que quebrava por FK
-- **URelatCQ**: CQ, PDF e envio por e-mail (`\\PRODUCAO\Amortrat\CQ` é rede)
-- **UGerrelat**: os 12 tipos de relatório
-- **Comparar PDFs** da mesma OS antes/depois da migração
-- **UUsuarios / UReajuste**
+O SQL de `principal`, `UNf` e `UModulo` foi validado contra o banco (execução e
+`PREPARE`), mas **nenhum fluxo de gravação foi testado pela interface**.
+
+Roteiro sugerido, do menos ao mais arriscado:
+
+1. **Abrir o sistema** — o `DataModuleCreate` mudou bastante; confirmar que
+   conecta e que o menu abre sem erro.
+2. **`principal`**: Resumo Diário e Ranking (mandam WhatsApp — conferir se os
+   números batem com o Paradox); Controle Produção e PowerBI (geram `.xlsx`).
+3. **`UUsuarios` / `UReajuste`** — cadastros simples.
+4. **`FOs`**: criar OS (código `NNNNNN/AA` + pré-reserva), gravar+imprimir,
+   finalizar, desfinalizar, terceirizar — em especial numa das **12 OS com
+   `FORNECEDOR` `0027`/`0292`**, que era o caso que quebrava por FK.
+5. **`URelatCQ`**: CQ, PDF e envio por e-mail (`\\PRODUCAO\Amortrat\CQ` é rede).
+6. **`UGerrelat`**: os 12 tipos de relatório.
+7. **`UNf` — deixar por último, é o de maior risco.** Testar **em homologação**
+   (`tb_config` cod 4 = `2`) antes de qualquer nota real:
+   - abrir NF nova → confirmar que o número vem com 6 dígitos (`027661`, não
+     `27661`) e que o stub aparece em `tb_nf`;
+   - **sair sem gravar** → o stub tem de sumir (`LiberarCodigoReservado`);
+   - adicionar **3+ itens** e gravar → conferir se **todos** foram para
+     `tb_nf_itens`. Este é o ponto que a armadilha #22 quebraria: no BDE o laço
+     gravava por post implícito;
+   - reabrir a NF → grid tem de voltar com os mesmos valores, casas decimais
+     inclusive;
+   - conferir `PRECO_TOTAL`, `VALOR`, `TOTAL_NOTA` e `ICMS_BASE` no banco contra
+     a tela (armadilha #24);
+   - só então: enviar NF-e, imprimir DANFE, e-mail, cancelamento, carta de
+     correção, recuperação.
+8. **Comparar PDFs** (DANFE e CQ) da mesma OS/NF antes e depois da migração.
 
 ### 7.3 Observações de dados (não são bugs de código)
 
