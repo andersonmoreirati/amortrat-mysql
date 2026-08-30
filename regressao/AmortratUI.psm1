@@ -26,6 +26,15 @@
 
 Set-StrictMode -Version Latest
 
+# Add-Type compila o tipo UMA VEZ por processo PowerShell. Reimportar o modulo
+# com -Force recarrega as funcoes, mas o tipo .NET ja registrado permanece o
+# antigo. Por isso: so adiciona se ainda nao existir, e se existir confere se
+# tem tudo o que este modulo usa - dando mensagem clara em vez de um
+# EntryPointNotFoundException no meio da execucao.
+$script:_tipoAUI = ([System.Management.Automation.PSTypeName]'AUI').Type
+
+if (-not $script:_tipoAUI) {
+
 Add-Type -TypeDefinition @"
 using System;
 using System.Text;
@@ -49,10 +58,6 @@ public class AUI {
   [DllImport("user32")] public static extern bool GetClientRect(IntPtr h, out RECT r);
   [DllImport("user32")] public static extern bool ScreenToClient(IntPtr h, ref POINT p);
   [DllImport("user32", CharSet=CharSet.Unicode)] public static extern IntPtr SendMessageW(IntPtr h, uint m, IntPtr w, IntPtr l);
-  // Mesma API, sobrecarga com string no lParam (WM_SETTEXT, CB_FINDSTRINGEXACT).
-  // EntryPoint e obrigatorio: 'SendMessageStr' nao existe em user32.
-  [DllImport("user32", EntryPoint="SendMessageW", CharSet=CharSet.Unicode)]
-  public static extern IntPtr SendMessageStr(IntPtr h, uint m, IntPtr w, string l);
   [DllImport("user32")] public static extern IntPtr PostMessageW(IntPtr h, uint m, IntPtr w, IntPtr l);
   [DllImport("user32")] public static extern bool SetForegroundWindow(IntPtr h);
   [DllImport("user32")] public static extern IntPtr SetFocus(IntPtr h);
@@ -81,7 +86,21 @@ public class AUI {
     return sb.ToString();
   }
 }
-"@ -ReferencedAssemblies System.Drawing -ErrorAction SilentlyContinue
+"@ -ReferencedAssemblies System.Drawing
+
+} else {
+  # Tipo veio de uma importacao anterior nesta mesma sessao. Confere se atende.
+  $exigidos = @('EnumWindows','EnumChildWindows','GetClassName','GetWindowTextW',
+                'GetWindowThreadProcessId','IsWindowVisible','IsWindowEnabled',
+                'GetParent','GetWindowRect','SendMessageW','SendMessageTimeoutW',
+                'PrintWindow','IsHungAppWindow','Cls','Txt')
+  $faltam = @($exigidos | Where-Object { -not $script:_tipoAUI.GetMethod($_) })
+  if ($faltam.Count -gt 0) {
+    throw ("O tipo AUI ja carregado nesta sessao esta desatualizado " +
+           "(faltam: $($faltam -join ', ')). Add-Type nao recompila um tipo ja " +
+           "registrado no processo. FECHE E REABRA o PowerShell e rode de novo.")
+  }
+}
 
 # ---------------------------------------------------------------------------
 # Descoberta de janelas
@@ -267,13 +286,25 @@ $script:CB_FINDSTRINGEXACT = 0x0158
 $script:CB_GETCOUNT  = 0x0146
 
 function Set-ControlText {
-  <#  Escreve num TEdit/TMaskEdit/TMemo.
+  <#  Escreve num TEdit/TMaskEdit/TMemo/TComboBox(csDropDown).
 
-      Usa WM_SETTEXT (direto) e depois um WM_CHAR neutro para disparar o
-      OnChange do VCL - varios campos do sistema so recalculam no OnChange
-      (ECliente -> EFantasia, por exemplo).  #>
+      A string vai como ponteiro nao gerenciado no SendMessageW ja declarado,
+      em vez de uma sobrecarga com parametro string.
+
+      Motivo: Add-Type compila o tipo UMA VEZ por processo PowerShell. Se a
+      sessao ja carregou uma versao anterior deste modulo, Import-Module -Force
+      recarrega as funcoes mas NAO recompila o tipo .NET - qualquer assinatura
+      nova continuaria ausente ate fechar o terminal. Usando so o SendMessageW
+      (que existe desde a primeira versao) o modulo funciona mesmo numa sessao
+      que ja tinha o tipo em cache.  #>
   param([Parameter(Mandatory)][IntPtr]$Handle, [Parameter(Mandatory)][AllowEmptyString()][string]$Text)
-  [void][AUI]::SendMessageStr($Handle, $script:WM_SETTEXT, [IntPtr]::Zero, $Text)
+
+  $p = [Runtime.InteropServices.Marshal]::StringToHGlobalUni($Text)
+  try {
+    [void][AUI]::SendMessageW($Handle, $script:WM_SETTEXT, [IntPtr]::Zero, $p)
+  } finally {
+    [Runtime.InteropServices.Marshal]::FreeHGlobal($p)
+  }
   [void][AUI]::SendMessageW($Handle, 0x0007, [IntPtr]::Zero, [IntPtr]::Zero)   # WM_SETFOCUS
   Start-Sleep -Milliseconds 60
 }
@@ -284,8 +315,16 @@ function Invoke-ControlClick {
 }
 
 function Select-ComboItem {
+  <#  Seleciona item de TComboBox pelo texto. Mesma tecnica de ponteiro do
+      Set-ControlText, pelo mesmo motivo (tipo em cache na sessao).  #>
   param([Parameter(Mandatory)][IntPtr]$Handle, [Parameter(Mandatory)][string]$Item)
-  $idx = [AUI]::SendMessageStr($Handle, $script:CB_FINDSTRINGEXACT, [IntPtr](-1), $Item)
+
+  $p = [Runtime.InteropServices.Marshal]::StringToHGlobalUni($Item)
+  try {
+    $idx = [AUI]::SendMessageW($Handle, $script:CB_FINDSTRINGEXACT, [IntPtr](-1), $p)
+  } finally {
+    [Runtime.InteropServices.Marshal]::FreeHGlobal($p)
+  }
   if ($idx.ToInt32() -ge 0) {
     [void][AUI]::SendMessageW($Handle, $script:CB_SETCURSEL, [IntPtr]$idx.ToInt32(), [IntPtr]::Zero)
     return $true
