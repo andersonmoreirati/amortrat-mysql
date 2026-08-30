@@ -3,274 +3,19 @@
 interface
 
 uses
-  SysUtils, Windows, Registry, Classes, ImgList, Controls, DB, DBTables, BDE,
-  DBClient, RxQuery, FixBDE4GbBug, Dialogs,
+  SysUtils, Windows, Registry, Classes, ImgList, Controls, DB, Dialogs,
   ZConnection, ZDataset, IniFiles;
 
 
 type
   TModulo = class(TDataModule)
     imagens: TImageList;
-    DSPecas: TDataSource;
-    TBPecas: TTable;
-    DSOs: TDataSource;
-    TBOs: TTable;
-    TBOsCODIGO: TStringField;
-    TBOsPROCESSO: TStringField;
-    TBOsCLIENTE: TStringField;
-    TBOsDATA: TDateField;
-    TBOsQUANTIDADE: TFloatField;
-    TBOsEMBALAGEM: TStringField;
-    TBOsPESO: TFloatField;
-    TBOsOBS: TStringField;
-    TBOsNOTA: TStringField;
-    DSOs_Finalizados: TDataSource;
-    TBOs_Finalizados: TTable;
-    TBOsFINALIZADA: TBooleanField;
-    TBOsPECA: TStringField;
-    TBProc: TTable;
-    DSProc: TDataSource;
-    TBProcCODIGO: TStringField;
-    TBProcPROCESSO: TStringField;
-    TBProcLINHA1: TStringField;
-    TBProcLINHA2: TStringField;
-    TBProcLINHA3: TStringField;
-    TBProcLINHA4: TStringField;
-    TBProcLINHA5: TStringField;
-    TBProcLINHA6: TStringField;
-    TBProcLINHA7: TStringField;
-    TBProcOBS: TStringField;
-    TBPecasCOD_CLI: TStringField;
-    TBPecasCODIGO: TStringField;
-    TBPecasCOD_PROC: TStringField;
-    TBPecasDESCRICAO: TStringField;
-    TBPecasMATERIAL: TStringField;
-    TBPecasPRECO: TCurrencyField;
-    TBPecasDUREZA: TStringField;
-    TBPecasOBS: TStringField;
-    TBNf: TTable;
-    DSNf: TDataSource;
-    TBUsuario: TTable;
-    DSUsuario: TDataSource;
-    TBUsuarioLOGIN: TStringField;
-    TBUsuarioSENHA: TStringField;
-    TBUsuarioPRECO: TBooleanField;
-    TBUsuarioUSUARIO: TBooleanField;
-    TBUsuarioCLIENTE: TBooleanField;
-    TBUsuarioNF: TBooleanField;
-    TBUsuarioRELATORIOS: TBooleanField;
-    TBOs_FinalizadosCODIGO: TStringField;
-    TBOs_FinalizadosNOTA: TStringField;
-    TBOs_FinalizadosDATA_FIM: TDateField;
-    TBOs_FinalizadosVALOR: TCurrencyField;
-    TBOs_FinalizadosRETRABALHO: TBooleanField;
-    TBOs_FinalizadosDEVOLUCAO: TBooleanField;
-    TBOs_FinalizadosFORNO: TSmallintField;
-    TBNf_Itens: TTable;
-    DSNF_Itens: TDataSource;
-    TBNfCODIGO: TStringField;
-    TBNfCOD_CLI: TStringField;
-    TBNfDATAE: TDateField;
-    TBNfVALOR: TCurrencyField;
-    TBNfTIPO: TStringField;
-    TBNfNATUREZA: TStringField;
-    TBNfCFOP: TStringField;
-    TBNfDATAS: TDateField;
-    TBNfTIPO_RETORNO: TStringField;
-    TBNfTIPO_PAGAMENTO: TStringField;
-    TBNfICMS_BASE: TCurrencyField;
-    TBNfNOME_TRANSPORTADORA: TStringField;
-    TBNfQUANTIDADE: TFloatField;
-    TBNfESPECIE: TStringField;
-    TBNfPESOL: TFloatField;
-    TBNfTIPO_FRETE: TStringField;
-    TBNfPESOB: TFloatField;
-    TBNf_Ref: TTable;
-    TBNf_RefCOD_NF: TStringField;
-    TBNf_RefDATA_NF_CLIENTE: TDateField;
-    TBNf_RefVALOR_NF_CLIENTE: TCurrencyField;
-    TBNf_RefFLAG_NFE: TStringField;
-    TBNf_ItensCOD_NF: TStringField;
-    TBNf_ItensCOD_OS: TStringField;
-    TBNfCOD_NFE: TStringField;
-    TBNfPATH_NFE: TStringField;
-    TBConfig: TTable;
-    TBConfigCOD_CONFIG: TIntegerField;
-    TBConfigDSC_CONFIG: TStringField;
-    TBConfigVLR_CONFIG: TStringField;
-    TBNfFLG_ENVIADA: TStringField;
-    TBNf_RefCOD_NF_CLIENTE: TStringField;
-    TBEmail: TTable;
-    TBEmailCOD_CLIENTE: TStringField;
-    TBEmailEMAIL: TStringField;
-    TBNf_ItensCODIGO: TStringField;
-    TBNf_ItensDESCRICAO: TStringField;
-    TBNf_ItensCFOP: TStringField;
-    TBNf_ItensCST: TStringField;
-    TBNf_ItensUNIDADE: TStringField;
-    TBNf_ItensPRECO_TOTAL: TCurrencyField;
-    TBNfCFOP_RETORNO: TStringField;
-    TBNfCST: TStringField;
-    TBNfCST_RETORNO: TStringField;
-    TBNfTOTAL_NOTA: TCurrencyField;
-    TBNf_ItensNCM: TStringField;
-    TBEmailFLG_CQ: TStringField;
-    TBEquipamentos: TTable;
-    DSEquipamentos: TDataSource;
-    TBEquipPeca: TTable;
-    DSEquipPeca: TDataSource;
-    TBEquipPecaCODIGO_EQUIP: TStringField;
-    TBEquipPecaCODIGO_CLI: TStringField;
-    TBEquipPecaCODIGO_PECA: TStringField;
-    TBEquipPecaVL_PRODUTIVIDADE: TFloatField;
-    TBPecasCOD_PECA_CLI: TStringField;
-    TBApontamento: TTable;
-    DSApontamento: TDataSource;
-    TBPecasITEM_SEG: TBooleanField;
-    TBPecasREVISAO: TStringField;
-    TBPecasDATA_REVISAO: TDateField;
-    TBFuncionario: TTable;
-    DSFuncionario: TDataSource;
-    TBOsLOTE: TStringField;
-    TBPecasANALISE_DET: TBooleanField;
-    TBPecasMARCHA: TStringField;
-    TBNfTIPO_EMISSAO: TStringField;
-    TBNfPLACA: TStringField;
-    TBNfUF_PLACA: TStringField;
-    TBFornec: TTable;
-    TBNf_ItensCEST: TStringField;
-    VendasGerais: TRxQuery;
-    VendasGeraisCLIENTE: TStringField;
-    VendasGeraisCODIGO_CLIENTE: TStringField;
-    VendasGeraisCODIGO_OS: TStringField;
-    VendasGeraisDATA_ABERTURA: TDateField;
-    VendasGeraisDATA_FIM: TDateField;
-    VendasGeraisVALOR: TCurrencyField;
-    VendasGeraisQUANTIDADE: TFloatField;
-    VendasGeraisPESO: TFloatField;
-    VendasGeraisCODIGO_PECA: TStringField;
-    VendasGeraisPECA: TStringField;
-    VendasGeraisPRECO_KG: TCurrencyField;
-    VendasGeraisPRECO_COBRADO: TCurrencyField;
-    VendasGeraisMES_OS_FIM: TFloatField;
-    VendasGeraisANO_OS_FIM: TFloatField;
-    OrdensNaoFilalizadas: TRxQuery;
-    OrdensNaoFilalizadasCLIENTE: TStringField;
-    OrdensNaoFilalizadasCODIGO_CLIENTE: TStringField;
-    OrdensNaoFilalizadasCODIGO: TStringField;
-    OrdensNaoFilalizadasDATA_ABERTURA: TDateField;
-    OrdensNaoFilalizadasQUANTIDADE: TFloatField;
-    OrdensNaoFilalizadasPESO: TFloatField;
-    OrdensNaoFilalizadasCODIGO_PECA: TStringField;
-    OrdensNaoFilalizadasPECA: TStringField;
-    OrdensNaoFilalizadasPRECO_KG: TCurrencyField;
-    OrdensNaoFilalizadasMES_OS_ABERTURA: TFloatField;
-    OrdensNaoFilalizadasANO_OS_ABERTURA: TFloatField;
-    OrdensNaoFilalizadasvalor_estimado: TCurrencyField;
-    PesoTotal: TRxQuery;
-    PesoTotaldata: TDateField;
-    PesoTotalpeso: TFloatField;
-    TBClientes: TTable;
-    TBClientesRAZAO: TStringField;
-    TBClientesFANTASIA: TStringField;
-    TBClientesCNPJ: TStringField;
-    TBClientesENDERECO: TStringField;
-    TBClientesBAIRRO: TStringField;
-    TBClientesCIDADE: TStringField;
-    TBClientesESTADO: TStringField;
-    TBClientesCEP: TStringField;
-    TBClientesINSC_EST: TStringField;
-    TBClientesTEL1: TStringField;
-    TBClientesTEL2: TStringField;
-    TBClientesRESPONSAVEL: TStringField;
-    TBClientesCARGO: TStringField;
-    TBClientesCODIGO: TStringField;
-    TBClientesEMAIL: TStringField;
-    TBClientesHOME: TStringField;
-    TBClientesINATIVO: TBooleanField;
-    TBClientesCOD_MUNICIPIO: TStringField;
-    TBClientesNUMERO: TStringField;
-    TBClientesLT_MINIMO: TCurrencyField;
-    DSClientes: TDataSource;
-    TBNfTIPO_45: TStringField;
-    TBNfTIPO_30: TStringField;
-    TBNfTIPO_60: TStringField;
-    DSTerceirizadas: TDataSource;
-    TBOSTerceirizadas: TTable;
-    TBOSTerceirizadasCODIGO: TStringField;
-    TBOSTerceirizadasCOD_CLI: TStringField;
-    TBOSTerceirizadasCOD_PROC: TStringField;
-    TBOSTerceirizadasDATA_ENVIO: TDateField;
-    TBOSTerceirizadasDATA_RETORNO: TDateField;
-    TBOSTerceirizadasOBS: TStringField;
-    TBPecasFIGURA: TStringField;
-    TBNf_ItensQUANTIDADE: TFloatField;
-    TBNf_ItensPRECO_UNITARIO: TFloatField;
-    DSFornec: TDataSource;
-    TBFornecCODIGO: TStringField;
-    TBFornecRAZAO: TStringField;
-    TBFornecFANTASIA: TStringField;
-    TBFornecCNPJ: TStringField;
-    TBFornecENDERECO: TStringField;
-    TBFornecBAIRRO: TStringField;
-    TBFornecCIDADE: TStringField;
-    TBFornecESTADO: TStringField;
-    TBFornecCEP: TStringField;
-    TBFornecINSC_EST: TStringField;
-    TBFornecTEL1: TStringField;
-    TBFornecTEL2: TStringField;
-    TBFornecRESPONSAVEL: TStringField;
-    TBFornecCARGO: TStringField;
-    TBFornecEMAIL: TStringField;
-    TBFornecHOME: TStringField;
-    TBFornecINATIVO: TBooleanField;
-    TBFornecCOD_MUNICIPIO: TStringField;
-    TBFornecNUMERO: TStringField;
-    TBFornecLT_MINIMO: TCurrencyField;
-    TBOsFORNECEDOR: TStringField;
-    TBOsDATA_ENVIO: TDateField;
-    TBOsDATA_RETORNO: TDateField;
-    TBOsFLG_RETORNO: TStringField;
-    TBOsVALOR_RETORNO: TCurrencyField;
-    TBOsOBS_FORNECEDOR: TStringField;
-    TBOsPROCESSO_FORNECEDOR: TStringField;
-    TBOsURGENCIA: TStringField;
-    DSEvento: TDataSource;
-    TBEquipamentosCODIGO: TStringField;
-    TBEquipamentosDESCRICAO: TStringField;
-    TBEvento: TTable;
-    TBEventoCODIGO: TStringField;
-    TBEventoEVENTO: TStringField;
-    TBApontamentoCOD_APONTAMENTO: TStringField;
-    TBApontamentoCOD_EQUIPAMENTO: TStringField;
-    TBApontamentoCOD_FUNCIONARIO: TStringField;
-    TBApontamentoOS: TStringField;
-    TBApontamentoDATA_INICIO: TDateTimeField;
-    TBApontamentoDATA_FIM: TDateTimeField;
-    TBApontamentoOBS: TStringField;
-    TBApontamentoCOD_EVENTO: TStringField;
-    TBApontamentoPESO: TFloatField;
-    TBFuncionarioCODIGO: TStringField;
-    TBFuncionarioNOME: TStringField;
-    TBFuncionarioFUNCAO: TStringField;
-    OrdensDoAno: TRxQuery;
-    DataSource1: TDataSource;
-    OrdensFinalizadasDoAno: TRxQuery;
-    procedure TBClientesAfterPost(DataSet: TDataSet);
-    procedure TBPecasAfterPost(DataSet: TDataSet);
-    procedure TBOs_FinalizadosAfterPost(DataSet: TDataSet);
     procedure DataModuleCreate(Sender: TObject);
-    procedure TBOsAfterPost(DataSet: TDataSet);
-    procedure TBNfAfterPost(DataSet: TDataSet);
   private
     { Private declarations }
   public
     { Conexão MySQL — usada por todos os módulos migrados }
     ZConexao: TZConnection;
-
-    { tb_usuario — dupla convivência: BDE intacto, MySQL ao lado }
-    ZTBUsuario: TZTable;
-    ZDSUsuario: TDataSource;
 
     { LOGIN do usuário autenticado, preenchido pelo ULogin após validar a senha.
       Antes os forms descobriam quem estava logado lendo TBUsuarioLOGIN.Value —
@@ -360,23 +105,11 @@ begin
 end;
 {$R *.dfm}
 
-procedure TModulo.TBClientesAfterPost(DataSet: TDataSet);
-begin
-   TBClientes.FlushBuffers;
-   DBISaveChanges(TBClientes.Handle);
-end;
-
-procedure TModulo.TBPecasAfterPost(DataSet: TDataSet);
-begin
-   TBPecas.FlushBuffers;
-   DBISaveChanges(TBPecas.Handle);
-end;
-
-procedure TModulo.TBOs_FinalizadosAfterPost(DataSet: TDataSet);
-begin
-   TBOS_Finalizados.FlushBuffers;
-   DBISaveChanges(TBOS_Finalizados.Handle);
-end;
+{ Os handlers AfterPost (TBClientes/TBPecas/TBOs/TBOs_Finalizados/TBNf) foram
+  removidos junto com os TTable. Faziam FlushBuffers + DBISaveChanges, que
+  forçavam o BDE a gravar o buffer no arquivo .DB em disco — nada a ver com o
+  sync Paradox->MySQL, que é um processo externo (colunas sync_hash/sync_at/
+  sync_origin). No MySQL cada INSERT/UPDATE já é durável no commit. }
 
 procedure TModulo.DataModuleCreate(Sender: TObject);
 var
@@ -410,80 +143,13 @@ begin
         'Verifique o arquivo amortrat.ini.' + #13#10 + E.Message);
   end;
 
-  // Tabelas MySQL — dupla convivência (BDE não é alterado)
-  // Nota: ZTBUsuario é criado mas não ativado aqui; será aberto sob demanda.
-  // TRxLookupEdit é BDE-only — não atribuímos LookupSource a ele.
-  if (ZConexao <> nil) and ZConexao.Connected then
-  try
-    ZTBUsuario := TZTable.Create(Self);
-    ZTBUsuario.Connection := ZConexao;
-    ZTBUsuario.TableName  := 'tb_usuario';
-    { Active := True propositalmente omitido aqui:
-      TRxLookupEdit faz casts BDE-internos e causaria AV com TZTable.
-      A autenticação usa TZQuery diretamente no BTEntrarClick. }
-
-    ZDSUsuario := TDataSource.Create(Self);
-    ZDSUsuario.DataSet := ZTBUsuario;
-  except
-    // falhou ao preparar ZTBUsuario — login continua por TZQuery
-    FreeAndNil(ZDSUsuario);
-    FreeAndNil(ZTBUsuario);
-  end;
-
-  // --- BDE (tabelas Paradox — sem alteração) ---
-  TBClientes.DBSession.AddPassword('99866');
-    TBFornec.DBSession.AddPassword('99866');
-  TBPecas.DBSession.AddPassword('99866');
-  TBOs.DBSession.AddPassword('99866');
-  TBOs_Finalizados.DBSession.AddPassword('99866');
-  TBNf.DBSession.AddPassword('99866');
-  TBNf_Ref.DBSession.AddPassword('99866');
-  TBNf_Itens.DBSession.AddPassword('99866');
-  TBProc.DBSession.AddPassword('99866');
-  TBUsuario.DBSession.AddPassword('99866');
-  TBConfig.DBSession.AddPassword('99866');
-  TBEmail.DBSession.AddPassword('99866');
-  TBEquipamentos.DBSession.AddPassword('99866');
-  TBEquipPeca.DBSession.AddPassword('99866');
-  TBApontamento.DBSession.AddPassword('99866');
-  TBFuncionario.DBSession.AddPassword('99866');
-  VendasGerais.DBSession.AddPassword('99866');
-  OrdensNaoFilalizadas.DBSession.AddPassword('99866');
-  PesoTotal.DBSession.AddPassword('99866');
-  TBClientes.Active := true;
-  TBProc.Active := true;
-  TBPecas.Active := true;
-  TBOs.Active := true;
-  TBOs_Finalizados.Active := true;
-  TBNf.Active := true;
-  TBNf_Ref.Active := true;
-  TBNf_Itens.Active := true;
-  TBUsuario.Active := true;
-  TBConfig.Active := true;
-  TBEmail.Active := true;
-  TBFornec.Active := true;
-  TBOSTerceirizadas.Active := true;
-
-
-  TBFuncionario.Active := true;
-
-  TBEquipamentos.Active := true;
- // TBEquipPeca.Active := true;
-  TBApontamento.Active := true;
-  TBEvento.Active := true;
-end;
-
-procedure TModulo.TBOsAfterPost(DataSet: TDataSet);
-begin
-   TBOS.FlushBuffers;
-   DBISaveChanges(TBOS.Handle);
-end;
-
-procedure TModulo.TBNfAfterPost(DataSet: TDataSet);
-begin
-   TBNf.FlushBuffers;
-   DBISaveChanges(TBNf.Handle);
-
+  { A partir daqui o DataModule é 100% MySQL.
+    Removidos: os 18 TTable/5 TRxQuery Paradox, os AddPassword('99866') do
+    alias BDE e os Active := True que abriam todos os cursores na abertura do
+    sistema. Cada form migrado abre e fecha seus próprios TZQuery.
+    ZTBUsuario/ZDSUsuario também saíram: eram andaime da fase de transição e
+    nenhum form chegou a usá-los (o login autentica por TZQuery e guarda o
+    resultado em UsuarioLogado). }
 end;
 
 function TModulo.MapeamentosDisponiveis():string;

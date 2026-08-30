@@ -27,7 +27,6 @@ uses
   ULogin in 'ULogin.pas' {FLogin},
   ufrmStatus in 'ufrmStatus.pas' {frmStatus},
   UBCrypt in 'UBCrypt.pas',
-  FixBDE4GbBug in 'FixBDE4GbBug.pas',
   Windows,
   SysUtils,
   Variants,

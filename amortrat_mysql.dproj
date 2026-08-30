@@ -107,7 +107,6 @@
 				<Form>frmStatus</Form>
 			</DCCReference>
 			<DCCReference Include="UBCrypt.pas"/>
-			<DCCReference Include="FixBDE4GbBug.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>
