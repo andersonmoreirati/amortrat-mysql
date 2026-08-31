@@ -214,8 +214,8 @@ serve em script de CI.
 
 ## Roteiro `10-ciclo-completo`
 
-Cobre o ciclo inteiro: **processo → cliente → peça → OS → consulta →
-finalização**, com 21 snapshots.
+Cobre o ciclo inteiro — **processo → cliente → peça → OS → consulta →
+finalização** — em 24 snapshots.
 
 ```
 rodar.cmd paradox ADMIN 4044 roteiros\10-ciclo-completo.json
@@ -223,11 +223,48 @@ rodar.cmd mysql   ADMIN 4044 roteiros\10-ciclo-completo.json
 comparar.cmd 10-ciclo-completo
 ```
 
-**Códigos usados:** processo `902`, cliente `9001`, peça `001`. Se já existirem
-na base, o roteiro **altera** em vez de criar — troque-os no JSON ou use base
-limpa.
+### Referência × cadastro novo
 
-**O snapshot `17-os-consultada-antes-de-finalizar` é o mais importante:** é
-exatamente onde o bug do *"OS já finalizada"* se manifestava. Com `FINALIZADA=0`
-o `BTFinalizar` tem de estar habilitado e o `BTDesfinalizar` desabilitado. Uma
-divergência ali aparece como **ESTADO** no relatório.
+| | Como o roteiro trata |
+|---|---|
+| **Referência** (processo `002`, cliente `0001`) | já existem na base. São **consultados** e seus valores ficam em variáveis (`guardar`) |
+| **Cadastro novo** | o código vem do **sistema** (`ObterProximoCodigo` / `ProximoCodigoPeca`). O roteiro **captura** o que apareceu na tela e usa depois |
+
+Nenhum código novo é fixado no JSON. Isso importa: os dois bancos estão em
+pontos diferentes da sequência, então o Paradox pode gerar `018` e o MySQL
+`042` para o mesmo cadastro.
+
+Detalhe do fluxo: o código novo é gerado no **`FormShow`**. Depois de consultar
+a referência o form fica posicionado nela, então o roteiro **sai e reabre** para
+voltar ao modo "novo". Na peça é diferente — o código vem do `EClienteChange`,
+ou seja, aparece assim que o cliente é digitado.
+
+### Ao comparar, ignore os códigos gerados
+
+Eles **vão** divergir e isso não é defeito:
+
+```powershell
+.\Compare-Run.ps1 -Roteiro 10-ciclo-completo -IgnorarChaves `
+  "TEdit@31,75","TEdit@31,68","TEdit@391,70","TMaskEdit@24,61"
+```
+
+Essas quatro chaves são os campos de código de processo, cliente, peça e OS.
+Elas passam a aparecer como **ESPERADO** (verde) em vez de VALOR (vermelho).
+
+### Ações novas usadas por este roteiro
+
+| Ação | Para quê |
+|---|---|
+| `guardar` | lê um campo e salva em `$VAR` — replica a referência e captura o código gerado |
+| `conferir` | falha o roteiro se o campo não contiver o esperado, em vez de seguir preenchendo tela errada |
+| `teclas` | aciona o menu, que não tem handle (`Alt+C`, `P`/`C`/`E`; `Alt+O`) |
+
+### Os snapshots que mais importam
+
+- **`19-os-consultada-antes-de-finalizar`** — com `FINALIZADA=0`, o
+  `BTFinalizar` tem de estar **habilitado** e o `BTDesfinalizar` **desabilitado**.
+  É exatamente onde o bug que você encontrou se manifestava. Divergência ali sai
+  como **ESTADO**.
+- **`23-os-consultada-apos-finalizar`** — o inverso.
+- **`14-peca-reconsultada`** — confirma que a peça ficou vinculada ao cliente e
+  ao processo criados.

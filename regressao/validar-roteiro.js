@@ -68,5 +68,27 @@ for (const p of rot.passos) {
   }
 }
 
-console.log(`\n  ${ok} confirmado(s), ${erro} sem correspondencia, ${aviso} aviso(s)`);
+// --- variaveis do roteiro -------------------------------------------------
+// Um $VAR usado antes de ser guardado seria escrito literalmente no campo,
+// sem erro visivel - o cadastro sairia com "$NOVO_PROC" no lugar do codigo.
+{
+  const def = new Set(['USUARIO', 'SENHA']);
+  const usos = [];
+  for (const p of rot.passos) {
+    if (p.acao === 'guardar' && p.var) def.add(p.var);
+    const txt = (p.valor || '') + ' ' + (p.esperado || '');
+    const re = /\$([A-Z_][A-Z0-9_]*)/g;
+    let m;
+    while ((m = re.exec(txt)) !== null) usos.push(m[1]);
+  }
+  const faltam = [...new Set(usos.filter(u => !def.has(u)))];
+  const ociosas = [...def].filter(d => !usos.includes(d));
+
+  console.log('\n  variaveis definidas: ' + [...def].sort().join(', '));
+  if (faltam.length)  { console.log('  ERRO usadas sem guardar: ' + faltam.join(', ')); process.exit(1); }
+  if (ociosas.length) { console.log('  aviso guardadas sem uso: ' + ociosas.join(', ')); }
+  console.log('  variaveis: ok');
+}
+
+console.log(`\n  ${ok} seletor(es) confirmado(s), ${erro} sem correspondencia, ${aviso} aviso(s)`);
 process.exit(erro > 0 ? 1 : 0);

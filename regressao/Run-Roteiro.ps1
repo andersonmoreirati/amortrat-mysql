@@ -92,6 +92,24 @@ Log "processo iniciado: PID $($proc.Id)"
 $janela = $null
 $erros  = 0
 
+# Variaveis do roteiro. Existem por dois motivos:
+#
+#  1) "replicar os dados de um cadastro de referencia" exige LER o valor de um
+#     campo e escreve-lo em outro momento - nao da para fixar no JSON;
+#  2) codigo de cadastro novo e gerado pelo SISTEMA (ObterProximoCodigo). O
+#     roteiro nao pode chutar qual sera: precisa capturar o que apareceu na
+#     tela para depois consultar aquele mesmo registro.
+$vars = @{}
+
+function Expandir($texto) {
+  if ($null -eq $texto) { return $null }
+  $r = $texto
+  if ($r -eq '$USUARIO') { return $Usuario }
+  if ($r -eq '$SENHA')   { return $Senha }
+  foreach ($k in $vars.Keys) { $r = $r.Replace('$' + $k, [string]$vars[$k]) }
+  return $r
+}
+
 function Resolve-ControlePasso($tree, $passo) {
   $tem = { param($n) $passo.PSObject.Properties.Name -contains $n }
 
@@ -140,12 +158,36 @@ try {
         $tree = @(Get-ControlTree -Root ([IntPtr]$janela.Handle))
         $c = Resolve-ControlePasso $tree $passo
         if (-not $c) { Log "ERRO: controle nao encontrado para 'escrever' ($($passo | ConvertTo-Json -Compress))"; $erros++; continue }
-        $v = $passo.valor
-        if ($v -eq '$USUARIO') { $v = $Usuario }
-        if ($v -eq '$SENHA')   { $v = $Senha }
+        $v = Expandir $passo.valor
         Set-ControlText -Handle ([IntPtr]$c.Handle) -Text $v
         $mostra = if ($passo.valor -eq '$SENHA') { '***' } else { $v }
         Log "escrever [$($c.Class)@$($c.Left),$($c.Top)] = '$mostra'"
+      }
+
+      'guardar' {
+        # Le o valor de um campo e guarda numa variavel do roteiro, para usar
+        # depois com $NOME. E assim que se replica o cadastro de referencia e
+        # que se captura o codigo gerado pelo sistema.
+        $tree = @(Get-ControlTree -Root ([IntPtr]$janela.Handle))
+        $c = Resolve-ControlePasso $tree $passo
+        if (-not $c) { Log "ERRO: controle nao encontrado para 'guardar' ($($passo | ConvertTo-Json -Compress))"; $erros++; continue }
+        $vars[$passo.var] = $c.Text
+        Log "guardar `$$($passo.var) = '$($c.Text)'"
+      }
+
+      'conferir' {
+        # Falha o roteiro se o campo nao contiver o esperado. Util para nao
+        # seguir preenchendo uma tela que ja saiu errada.
+        $tree = @(Get-ControlTree -Root ([IntPtr]$janela.Handle))
+        $c = Resolve-ControlePasso $tree $passo
+        if (-not $c) { Log "ERRO: controle nao encontrado para 'conferir'"; $erros++; continue }
+        $esp = Expandir $passo.esperado
+        if ("$($c.Text)".Trim() -eq "$esp".Trim()) {
+          Log "conferir [$($c.Class)@$($c.Left),$($c.Top)] = '$esp' OK"
+        } else {
+          Log "FALHA conferir [$($c.Class)@$($c.Left),$($c.Top)]: esperado '$esp', encontrado '$($c.Text)'"
+          $erros++
+        }
       }
 
       'clicar' {

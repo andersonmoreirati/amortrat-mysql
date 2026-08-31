@@ -36,7 +36,13 @@ param(
   [string]$A = "paradox",
   [string]$B = "mysql",
   [string]$SaidaRaiz,
-  [switch]$IgnorarEstrutura
+  [switch]$IgnorarEstrutura,
+  # Chaves cujo valor DEVE divergir e nao configura erro. O caso tipico e o
+  # codigo gerado por sequencia: ObterProximoCodigo le MAX(CODIGO) da base, e
+  # as duas bases nao estao no mesmo ponto - o Paradox pode gerar 018 e o MySQL
+  # 042 para o mesmo cadastro novo. Sem isso o relatorio abriria com falsos
+  # positivos justamente nos campos que o roteiro acabou de criar.
+  [string[]]$IgnorarChaves = @()
 )
 
 $ErrorActionPreference = "Stop"
@@ -108,8 +114,10 @@ function Compare-SnapshotPar($fA, $fB, $nome) {
     $na = Normalizar $ca.Text
     $nb = Normalizar $cb.Text
     if ($na -ne $nb) {
-      [void]$achados.Add([pscustomobject]@{ Passo=$nome; Tipo='VALOR'; Chave=$k
-        Detalhe="texto diferente"; ValorA=$ca.Text; ValorB=$cb.Text })
+      $tipo = if ($IgnorarChaves -contains $k) { 'ESPERADO' } else { 'VALOR' }
+      [void]$achados.Add([pscustomobject]@{ Passo=$nome; Tipo=$tipo; Chave=$k
+        Detalhe=$(if ($tipo -eq 'ESPERADO') { 'divergencia prevista (codigo por sequencia)' } else { 'texto diferente' })
+        ValorA=$ca.Text; ValorB=$cb.Text })
     }
     elseif ($ca.Enabled -ne $cb.Enabled -or $ca.Visible -ne $cb.Visible) {
       [void]$achados.Add([pscustomobject]@{ Passo=$nome; Tipo='ESTADO'; Chave=$k
@@ -146,12 +154,14 @@ if ($IgnorarEstrutura) { $todos = @($todos | Where-Object { $_.Tipo -ne 'ESTRUTU
 $nVal = @($todos | Where-Object Tipo -eq 'VALOR').Count
 $nEst = @($todos | Where-Object Tipo -eq 'ESTADO').Count
 $nStr = @($todos | Where-Object Tipo -eq 'ESTRUTURA').Count
+$nEsp = @($todos | Where-Object Tipo -eq 'ESPERADO').Count
 
 Write-Output ""
 Write-Output "=== $Roteiro : $A x $B ==="
 Write-Output ("  VALOR     {0,4}   <- diferenca de dado; investigar" -f $nVal)
 Write-Output ("  ESTADO    {0,4}   <- enabled/visible diferente" -f $nEst)
 Write-Output ("  ESTRUTURA {0,4}   <- controle so de um lado; normalmente esperado" -f $nStr)
+Write-Output ("  ESPERADO  {0,4}   <- divergencia prevista (codigo por sequencia)" -f $nEsp)
 Write-Output ""
 
 foreach ($d in ($todos | Where-Object { $_.Tipo -in @('VALOR','ESTADO') } | Select-Object -First 40)) {
@@ -172,7 +182,7 @@ h1{font-size:20px;margin:0 0 4px} h2{font-size:15px;margin:28px 0 8px;color:#374
 .card{border:1px solid #E5E7EB;border-radius:8px;padding:10px 16px;background:#fff}
 .card b{display:block;font-size:22px}
 .VALOR{border-left:4px solid #DC2626} .ESTADO{border-left:4px solid #D97706}
-.ESTRUTURA{border-left:4px solid #9CA3AF}
+.ESTRUTURA{border-left:4px solid #9CA3AF} .ESPERADO{border-left:4px solid #10B981}
 table{border-collapse:collapse;width:100%;background:#fff;margin-bottom:10px}
 th,td{border:1px solid #E5E7EB;padding:6px 9px;text-align:left;vertical-align:top;font-size:12px}
 th{background:#F3F4F6;font-weight:600}
@@ -189,9 +199,10 @@ $html = New-Object System.Text.StringBuilder
 [void]$html.Append("<div class='resumo'>")
 [void]$html.Append("<div class='card VALOR'><b>$nVal</b>valor</div>")
 [void]$html.Append("<div class='card ESTADO'><b>$nEst</b>estado</div>")
-[void]$html.Append("<div class='card ESTRUTURA'><b>$nStr</b>estrutura</div></div>")
+[void]$html.Append("<div class='card ESTRUTURA'><b>$nStr</b>estrutura</div>")
+[void]$html.Append("<div class='card ESPERADO'><b>$nEsp</b>esperado</div></div>")
 
-foreach ($tipo in @('VALOR','ESTADO','ESTRUTURA')) {
+foreach ($tipo in @('VALOR','ESTADO','ESTRUTURA','ESPERADO')) {
   $itens = @($todos | Where-Object Tipo -eq $tipo)
   if ($itens.Count -eq 0) { continue }
   [void]$html.Append("<h2>$tipo ($($itens.Count))</h2><table><tr><th>Passo</th><th>Controle</th><th>$A</th><th>$B</th><th>Obs</th></tr>")
