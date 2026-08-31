@@ -142,7 +142,14 @@ try {
 
       'aguardar-ocioso' {
         $to = if ($passo.PSObject.Properties.Name -contains 'timeout') { [int]$passo.timeout } else { 60 }
-        [void](Wait-AmortratIdle -Handle ([IntPtr]$janela.Handle) -TimeoutSeg $to)
+        # Um MessageBox aberto bloqueia o form: esperar por ele responder
+        # nunca terminaria. Avisa e segue, para o passo 'dialogo' resolver.
+        $dlg = Wait-Dialogo -ProcessId $proc.Id -TimeoutSeg 1
+        if ($dlg) {
+          Log "aviso: dialogo aberto ('$($dlg.Titulo)') - o form esta bloqueado, pulando a espera"
+        } else {
+          [void](Wait-AmortratIdle -Handle ([IntPtr]$janela.Handle) -TimeoutSeg $to)
+        }
       }
 
       'snapshot' {
@@ -207,6 +214,39 @@ try {
           Log "combo [$($c.Class)@$($c.Left),$($c.Top)] = '$($passo.valor)'"
         } else {
           Log "ERRO: item '$($passo.valor)' nao existe no combo"; $erros++
+        }
+      }
+
+      'dialogo' {
+        # Trata o MessageBox modal que um clique acabou de abrir.
+        #
+        # NAO usar {ENTER} para isso: varias confirmacoes do sistema sao
+        # MB_YESNO + MB_DEFBUTTON2, ou seja, o botao default e "Nao". Um ENTER
+        # ali CANCELA a gravacao e o roteiro seguiria como se tivesse gravado.
+        # Aqui o botao e escolhido pela LEGENDA.
+        $to = if ($passo.PSObject.Properties.Name -contains 'timeout') { [int]$passo.timeout } else { 20 }
+        $dlg = Wait-Dialogo -ProcessId $proc.Id -TimeoutSeg $to
+
+        if (-not $dlg) {
+          $obrig = -not ($passo.PSObject.Properties.Name -contains 'opcional' -and $passo.opcional)
+          if ($obrig) { Log "ERRO: dialogo esperado nao apareceu em ${to}s"; $erros++ }
+          else        { Log "dialogo opcional nao apareceu - seguindo" }
+          continue
+        }
+
+        $legendas = ($dlg.Botoes | ForEach-Object { $_.Text -replace '&','' }) -join ' | '
+        Log "dialogo '$($dlg.Titulo)': $($dlg.Mensagem)   [botoes: $legendas]"
+
+        # snapshot do proprio dialogo, se pedido
+        if ($passo.PSObject.Properties.Name -contains 'snapshot' -and $passo.snapshot) {
+          [void](New-Snapshot -Handle ([IntPtr]$dlg.Handle) -Dir $dirS -Nome $passo.snapshot)
+        }
+
+        $clicou = Invoke-DialogoBotao -Dialogo $dlg -Botao $passo.botao
+        if ($clicou) { Log "  -> clicou '$clicou'" }
+        else {
+          Log "ERRO: botao '$($passo.botao)' nao existe no dialogo (tem: $legendas)"
+          $erros++
         }
       }
 

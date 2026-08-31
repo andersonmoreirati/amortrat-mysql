@@ -327,8 +327,81 @@ function Set-ControlText {
 }
 
 function Invoke-ControlClick {
+  <#  Clica num botao SEM bloquear o harness.
+
+      Usa PostMessage, nao SendMessage: se o clique abre um MessageBox modal
+      (e varios abrem - 'Deseja realmente gravar esse cadastro?'), o
+      SendMessage so retorna quando o modal fechar. Como quem fecha o modal e o
+      proprio harness, isso seria um impasse.
+
+      Com PostMessage a chamada retorna na hora e o passo seguinte
+      ('dialogo') trata a janela que apareceu.  #>
   param([Parameter(Mandatory)][IntPtr]$Handle)
-  [void][AUI]::SendMessageW($Handle, $script:BM_CLICK, [IntPtr]::Zero, [IntPtr]::Zero)
+  [void][AUI]::PostMessageW($Handle, 0x0201, [IntPtr]1, [IntPtr]0)   # WM_LBUTTONDOWN
+  Start-Sleep -Milliseconds 40
+  [void][AUI]::PostMessageW($Handle, 0x0202, [IntPtr]0, [IntPtr]0)   # WM_LBUTTONUP
+  Start-Sleep -Milliseconds 120
+}
+
+# ---------------------------------------------------------------------------
+# Dialogos modais (MessageBox)
+# ---------------------------------------------------------------------------
+
+function Wait-Dialogo {
+  <#  Espera um MessageBox aparecer e devolve seus dados.
+
+      O MessageBox do Windows e uma JANELA DE TOPO de classe '#32770', nao um
+      controle do form. Enquanto ele esta aberto o form fica bloqueado - por
+      isso Wait-AmortratIdle nunca retorna e o harness "trava".
+
+      Devolve o titulo, o texto da mensagem e a lista de botoes com a legenda
+      de cada um.  #>
+  param([Parameter(Mandatory)][int]$ProcessId, [int]$TimeoutSeg = 20)
+
+  $fim = (Get-Date).AddSeconds($TimeoutSeg)
+  while ((Get-Date) -lt $fim) {
+    foreach ($w in Get-AmortratWindows -ProcessId $ProcessId) {
+      if ($w.Class -ne '#32770') { continue }
+      $tree = @(Get-ControlTree -Root ([IntPtr]$w.Handle))
+      $botoes = @($tree | Where-Object { $_.Class -eq 'Button' })
+      $textos = @($tree | Where-Object { $_.Class -eq 'Static' -and $_.Text })
+      return [pscustomobject]@{
+        Handle   = $w.Handle
+        Titulo   = $w.Title
+        Mensagem = ($textos | ForEach-Object { $_.Text }) -join ' '
+        Botoes   = $botoes
+      }
+    }
+    Start-Sleep -Milliseconds 150
+  }
+  return $null
+}
+
+function Invoke-DialogoBotao {
+  <#  Fecha o dialogo clicando no botao cuja legenda casa com o padrao.
+
+      IMPORTANTE: nao dar {ENTER}. Varias confirmacoes do sistema usam
+      MB_DEFBUTTON2, ou seja, o botao default e o SEGUNDO - "Nao". Um {ENTER}
+      ali CANCELA a operacao em vez de confirmar, e o roteiro segue como se
+      tivesse gravado.
+
+      O '&' do acelerador ('&Sim') e ignorado na comparacao.  #>
+  param(
+    [Parameter(Mandatory)]$Dialogo,
+    [Parameter(Mandatory)][string]$Botao      # ex: 'Sim', 'Nao', 'OK'
+  )
+  $alvo = $Botao -replace '&', ''
+  foreach ($b in $Dialogo.Botoes) {
+    $leg = ($b.Text -replace '&', '')
+    if ($leg -like "*$alvo*") {
+      [void][AUI]::PostMessageW([IntPtr]$b.Handle, 0x0201, [IntPtr]1, [IntPtr]0)
+      Start-Sleep -Milliseconds 40
+      [void][AUI]::PostMessageW([IntPtr]$b.Handle, 0x0202, [IntPtr]0, [IntPtr]0)
+      Start-Sleep -Milliseconds 250
+      return $leg
+    }
+  }
+  return $null
 }
 
 function Set-JanelaFoco {
@@ -446,6 +519,6 @@ function New-Snapshot {
 }
 
 Export-ModuleMember -Function Get-AmortratWindows, Wait-AmortratWindow, Wait-AmortratIdle,
-  Set-JanelaFoco, Send-Teclas,
+  Set-JanelaFoco, Send-Teclas, Wait-Dialogo, Invoke-DialogoBotao,
   Get-ControlTree, Get-ControlKey, Find-Control, Set-ControlText, Invoke-ControlClick,
   Select-ComboItem, Save-WindowImage, New-Snapshot

@@ -271,3 +271,62 @@ Elas passam a aparecer como **ESPERADO** (verde) em vez de VALOR (vermelho).
 - **`23-os-consultada-apos-finalizar`** — o inverso.
 - **`14-peca-reconsultada`** — confirma que a peça ficou vinculada ao cliente e
   ao processo criados.
+
+## ⚠️ Diálogos modais — a armadilha mais séria
+
+O sistema confirma quase toda gravação com um `MessageBox`. Isso derruba o
+harness de **duas** formas, e as duas já morderam:
+
+### 1. `{ENTER}` responde NÃO, não SIM
+
+As confirmações usam **`MB_DEFBUTTON2`** — o botão default é o **segundo**:
+
+```pascal
+Application.MessageBox(
+  pchar('Deseja realmente ' + FTipo + ' esse cadastro?'),
+  pchar('Confirmação para ' + FTipo),
+  MB_YESNO + MB_IconQuestion + MB_DEFBUTTON2)   // ← default = "Não"
+```
+
+Um `{ENTER}` ali **cancela** a operação — e o roteiro segue como se tivesse
+gravado, produzindo um relatório comparando telas vazias. Por isso existe a
+ação `dialogo`, que escolhe o botão **pela legenda**:
+
+```json
+{ "acao": "dialogo", "botao": "Sim", "timeout": 20 }
+```
+
+Comprovado: clicando por legenda o `MessageBox` retorna `6` (IDYES); com
+`{ENTER}` retornaria `7` (IDNO).
+
+### 2. `SendMessage` trava o harness
+
+Um `BM_CLICK` via `SendMessage` só retorna quando o modal fecha — mas quem
+fecha o modal é o próprio harness. Impasse. Por isso `Invoke-ControlClick` usa
+**`PostMessage`**, que retorna na hora.
+
+Pelo mesmo motivo, `aguardar-ocioso` detecta modal aberto e não espera: com o
+form bloqueado, ele nunca responderia.
+
+### 3. Diálogos em sequência
+
+Alguns fluxos abrem **dois** diálogos seguidos. Se o segundo não for tratado, o
+preview do relatório abre e o roteiro empaca:
+
+| Depois de | Diálogo | Responder |
+|---|---|---|
+| Gravar OS | "Deseja realmente gravar..." | `Sim` |
+| ↳ logo após | "Deseja imprimir essa Ordem de Serviço?" | **`Nao`** |
+| Finalizar | "Deseja realmente finalizar..." | `Sim` |
+| ↳ logo após | "Deseja imprimir o Certificado de Qualidade?" | **`Nao`** |
+
+Use `"opcional": true` quando o diálogo **pode** não aparecer — sem isso a
+ausência conta como erro.
+
+### Como descobrir os diálogos de um fluxo
+
+```bash
+grep -noE "MessageBox\(pchar\('[^']{0,60}|MessageBox\('[^']{0,60}" UOS.pas
+```
+
+E confira o `MB_DEFBUTTON2`: onde ele aparece, o default é "Não".

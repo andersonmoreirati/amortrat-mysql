@@ -1,7 +1,6 @@
 {
   "nome": "10-ciclo-completo",
   "descricao": "Ciclo completo: processo -> cliente -> peca -> OS -> consulta -> finalizacao.",
-
   "comoFunciona": [
     "CODIGOS DE REFERENCIA (002 processo, 0001 cliente) sao registros que JA EXISTEM na base. O roteiro os consulta, GUARDA os valores em variaveis e replica no cadastro novo.",
     "CODIGOS NOVOS nao sao fixados aqui: o sistema os gera (ObterProximoCodigo / ProximoCodigoPeca) e o roteiro CAPTURA o que apareceu na tela, para depois consultar aquele mesmo registro.",
@@ -9,215 +8,847 @@
     "O codigo novo aparece ao ABRIR o form (FormShow chama ObterProximoCodigo). Depois de consultar a referencia o form fica no registro dela, entao e preciso SAIR e REABRIR para voltar ao modo 'novo'.",
     "Na peca o codigo vem do EClienteChange: digitar o cliente ja preenche o proximo codigo daquele cliente."
   ],
-
   "passos": [
-
-    { "acao": "aguardar-janela", "classe": "TFLogin", "timeout": 60 },
-    { "acao": "escrever", "pos": "18,51", "valor": "$USUARIO" },
-    { "acao": "escrever", "pos": "17,88", "valor": "$SENHA" },
-    { "acao": "clicar", "classe": "TIAeverButton", "texto": "*Entrar*" },
-    { "acao": "aguardar-janela", "classe": "TFPrincipal", "timeout": 90 },
-    { "acao": "aguardar-ocioso", "timeout": 90 },
-    { "acao": "snapshot", "nome": "00-menu" },
-
-    { "_etapa": "1a. PROCESSO - consultar o 002 (referencia) e guardar os dados" },
-    { "acao": "teclas", "valor": "%c", "pausaMs": 400 },
-    { "acao": "teclas", "valor": "p",  "pausaMs": 900 },
-    { "acao": "aguardar-janela", "classe": "TFProcessos", "timeout": 40 },
-    { "acao": "aguardar-ocioso", "timeout": 40 },
-    { "acao": "escrever", "pos": "31,75", "valor": "002" },
-    { "acao": "clicar",   "pos": "91,75" },
-    { "acao": "aguardar-ocioso", "timeout": 30 },
-    { "acao": "snapshot", "nome": "01-processo-002-referencia" },
-    { "acao": "guardar", "pos": "149,77", "var": "REF_PROC_NOME" },
-    { "acao": "guardar", "pos": "31,131", "var": "REF_PROC_L1" },
-    { "acao": "guardar", "pos": "31,156", "var": "REF_PROC_L2" },
-    { "acao": "guardar", "pos": "31,181", "var": "REF_PROC_L3" },
-    { "acao": "guardar", "pos": "30,295", "var": "REF_PROC_OBS" },
-
-    { "_etapa": "1b. PROCESSO - sair e reabrir para o form gerar o proximo codigo" },
-    { "acao": "clicar",  "pos": "345,370" },
-    { "acao": "esperar", "ms": 900 },
-    { "acao": "aguardar-janela", "classe": "TFPrincipal", "timeout": 30 },
-    { "acao": "teclas", "valor": "%c", "pausaMs": 400 },
-    { "acao": "teclas", "valor": "p",  "pausaMs": 900 },
-    { "acao": "aguardar-janela", "classe": "TFProcessos", "timeout": 40 },
-    { "acao": "aguardar-ocioso", "timeout": 40 },
-    { "acao": "guardar",  "pos": "31,75", "var": "NOVO_PROC" },
-    { "acao": "snapshot", "nome": "02-processo-novo-codigo-automatico" },
-
-    { "_etapa": "1c. PROCESSO - replicar os dados da referencia e gravar" },
-    { "acao": "clicar",   "pos": "91,75" },
-    { "acao": "aguardar-ocioso", "timeout": 30 },
-    { "acao": "escrever", "pos": "149,77", "valor": "$REF_PROC_NOME (REGRESSAO)" },
-    { "acao": "escrever", "pos": "31,131", "valor": "$REF_PROC_L1" },
-    { "acao": "escrever", "pos": "31,156", "valor": "$REF_PROC_L2" },
-    { "acao": "escrever", "pos": "31,181", "valor": "$REF_PROC_L3" },
-    { "acao": "escrever", "pos": "30,295", "valor": "$REF_PROC_OBS" },
-    { "acao": "snapshot", "nome": "03-processo-preenchido" },
-    { "acao": "clicar",   "pos": "45,370" },
-    { "acao": "teclas",   "valor": "{ENTER}", "pausaMs": 800 },
-    { "acao": "aguardar-ocioso", "timeout": 30 },
-    { "acao": "snapshot", "nome": "04-processo-gravado" },
-
-    { "_etapa": "1d. PROCESSO - consultar o que acabou de ser criado" },
-    { "acao": "escrever", "pos": "31,75", "valor": "$NOVO_PROC" },
-    { "acao": "clicar",   "pos": "91,75" },
-    { "acao": "aguardar-ocioso", "timeout": 30 },
-    { "acao": "conferir", "pos": "31,75", "esperado": "$NOVO_PROC" },
-    { "acao": "snapshot", "nome": "05-processo-reconsultado" },
-    { "acao": "clicar",   "pos": "345,370" },
-    { "acao": "esperar",  "ms": 900 },
-
-    { "_etapa": "2a. CLIENTE - consultar o 0001 (referencia) e guardar os dados" },
-    { "acao": "aguardar-janela", "classe": "TFPrincipal", "timeout": 30 },
-    { "acao": "teclas", "valor": "%c", "pausaMs": 400 },
-    { "acao": "teclas", "valor": "c",  "pausaMs": 900 },
-    { "acao": "aguardar-janela", "classe": "TFClientes", "timeout": 40 },
-    { "acao": "aguardar-ocioso", "timeout": 40 },
-    { "acao": "escrever", "pos": "31,68", "valor": "0001" },
-    { "acao": "clicar",   "pos": "91,68" },
-    { "acao": "aguardar-ocioso", "timeout": 30 },
-    { "acao": "snapshot", "nome": "06-cliente-0001-referencia" },
-    { "acao": "guardar", "pos": "31,167",  "var": "REF_CLI_END" },
-    { "acao": "guardar", "pos": "370,167", "var": "REF_CLI_NUM" },
-    { "acao": "guardar", "pos": "31,215",  "var": "REF_CLI_BAIRRO" },
-    { "acao": "guardar", "pos": "199,215", "var": "REF_CLI_CIDADE" },
-    { "acao": "guardar", "pos": "429,215", "var": "REF_CLI_CEP" },
-    { "acao": "guardar", "pos": "32,262",  "var": "REF_CLI_MUN" },
-    { "acao": "guardar", "pos": "199,262", "var": "REF_CLI_TEL" },
-    { "acao": "guardar", "pos": "30,308",  "var": "REF_CLI_LTMIN" },
-
-    { "_etapa": "2b. CLIENTE - reabrir para gerar o proximo codigo" },
-    { "acao": "clicar",  "pos": "437,528" },
-    { "acao": "esperar", "ms": 900 },
-    { "acao": "aguardar-janela", "classe": "TFPrincipal", "timeout": 30 },
-    { "acao": "teclas", "valor": "%c", "pausaMs": 400 },
-    { "acao": "teclas", "valor": "c",  "pausaMs": 900 },
-    { "acao": "aguardar-janela", "classe": "TFClientes", "timeout": 40 },
-    { "acao": "aguardar-ocioso", "timeout": 40 },
-    { "acao": "guardar",  "pos": "31,68", "var": "NOVO_CLI" },
-    { "acao": "snapshot", "nome": "07-cliente-novo-codigo-automatico" },
-
-    { "_etapa": "2c. CLIENTE - 'Cliente Teste', demais dados replicados do 0001" },
-    { "acao": "clicar",   "pos": "91,68" },
-    { "acao": "aguardar-ocioso", "timeout": 30 },
-    { "acao": "escrever", "pos": "149,65",  "valor": "CLIENTE TESTE REGRESSAO LTDA" },
-    { "acao": "escrever", "pos": "31,119",  "valor": "Cliente Teste" },
-    { "acao": "escrever", "pos": "235,119", "valor": "11222333000181" },
-    { "acao": "escrever", "pos": "31,167",  "valor": "$REF_CLI_END" },
-    { "acao": "escrever", "pos": "370,167", "valor": "$REF_CLI_NUM" },
-    { "acao": "escrever", "pos": "31,215",  "valor": "$REF_CLI_BAIRRO" },
-    { "acao": "escrever", "pos": "199,215", "valor": "$REF_CLI_CIDADE" },
-    { "acao": "escrever", "pos": "429,215", "valor": "$REF_CLI_CEP" },
-    { "acao": "escrever", "pos": "32,262",  "valor": "$REF_CLI_MUN" },
-    { "acao": "escrever", "pos": "199,262", "valor": "$REF_CLI_TEL" },
-    { "acao": "escrever", "pos": "30,308",  "valor": "$REF_CLI_LTMIN" },
-    { "acao": "snapshot", "nome": "08-cliente-preenchido" },
-    { "acao": "clicar",   "pos": "33,528" },
-    { "acao": "teclas",   "valor": "{ENTER}", "pausaMs": 800 },
-    { "acao": "aguardar-ocioso", "timeout": 30 },
-    { "acao": "snapshot", "nome": "09-cliente-gravado" },
-
-    { "_etapa": "2d. CLIENTE - consultar de volta" },
-    { "acao": "escrever", "pos": "31,68", "valor": "$NOVO_CLI" },
-    { "acao": "clicar",   "pos": "91,68" },
-    { "acao": "aguardar-ocioso", "timeout": 30 },
-    { "acao": "conferir", "pos": "31,119", "esperado": "Cliente Teste" },
-    { "acao": "snapshot", "nome": "10-cliente-reconsultado" },
-    { "acao": "clicar",   "pos": "437,528" },
-    { "acao": "esperar",  "ms": 900 },
-
-    { "_etapa": "3. PECA - primeira peca do Cliente Teste, com o processo novo" },
-    { "acao": "aguardar-janela", "classe": "TFPrincipal", "timeout": 30 },
-    { "acao": "teclas", "valor": "%c", "pausaMs": 400 },
-    { "acao": "teclas", "valor": "e",  "pausaMs": 900 },
-    { "acao": "aguardar-janela", "classe": "TFPecas", "timeout": 40 },
-    { "acao": "aguardar-ocioso", "timeout": 40 },
-
-    { "acao": "escrever", "pos": "31,70", "valor": "$NOVO_CLI" },
-    { "acao": "esperar",  "ms": 900 },
-    { "acao": "guardar",  "pos": "391,70", "var": "NOVA_PECA" },
-    { "acao": "snapshot", "nome": "11-peca-codigo-automatico" },
-
-    { "acao": "clicar", "pos": "451,70" },
-    { "acao": "aguardar-ocioso", "timeout": 30 },
-    { "acao": "escrever", "pos": "31,116", "valor": "PECA TESTE REGRESSAO" },
-    { "acao": "escrever", "pos": "31,157", "valor": "ACO 1045" },
-    { "acao": "escrever", "pos": "31,197", "valor": "COD-CLI-TESTE" },
-    { "acao": "escrever", "pos": "31,361", "valor": "$NOVO_PROC" },
-    { "acao": "esperar",  "ms": 800 },
-    { "acao": "escrever", "pos": "32,322", "valor": "15,50" },
-    { "acao": "escrever", "pos": "31,403", "valor": "58 HRC" },
-    { "acao": "snapshot", "nome": "12-peca-preenchida" },
-    { "acao": "clicar",   "pos": "37,577" },
-    { "acao": "teclas",   "valor": "{ENTER}", "pausaMs": 800 },
-    { "acao": "aguardar-ocioso", "timeout": 30 },
-    { "acao": "snapshot", "nome": "13-peca-gravada" },
-
-    { "_etapa": "3b. PECA - consultar e conferir cliente + processo vinculados" },
-    { "acao": "escrever", "pos": "31,70",  "valor": "$NOVO_CLI" },
-    { "acao": "esperar",  "ms": 900 },
-    { "acao": "escrever", "pos": "391,70", "valor": "$NOVA_PECA" },
-    { "acao": "clicar",   "pos": "451,70" },
-    { "acao": "aguardar-ocioso", "timeout": 30 },
-    { "acao": "conferir", "pos": "31,361", "esperado": "$NOVO_PROC" },
-    { "acao": "snapshot", "nome": "14-peca-reconsultada" },
-    { "acao": "clicar",   "pos": "404,577" },
-    { "acao": "esperar",  "ms": 900 },
-
-    { "_etapa": "4. ORDEM DE SERVICO - emitir com codigo automatico" },
-    { "acao": "aguardar-janela", "classe": "TFPrincipal", "timeout": 30 },
-    { "acao": "teclas", "valor": "%o", "pausaMs": 1000 },
-    { "acao": "aguardar-janela", "classe": "TFOs", "timeout": 40 },
-    { "acao": "aguardar-ocioso", "timeout": 40 },
-    { "acao": "guardar",  "pos": "24,61", "var": "NOVA_OS" },
-    { "acao": "snapshot", "nome": "15-os-codigo-automatico" },
-
-    { "acao": "clicar", "pos": "101,62" },
-    { "acao": "aguardar-ocioso", "timeout": 40 },
-    { "acao": "snapshot", "nome": "16-os-apos-ok" },
-
-    { "acao": "escrever", "pos": "154,61", "valor": "$NOVO_CLI" },
-    { "acao": "esperar",  "ms": 900 },
-    { "acao": "escrever", "pos": "28,115", "valor": "$NOVA_PECA" },
-    { "acao": "esperar",  "ms": 900 },
-    { "acao": "escrever", "pos": "478,61", "valor": "999888" },
-    { "acao": "escrever", "pos": "28,407", "valor": "10" },
-    { "acao": "escrever", "pos": "221,406","valor": "200,00" },
-    { "acao": "escrever", "pos": "100,407","valor": "CAIXA" },
-    { "acao": "escrever", "pos": "28,446", "valor": "LOTE-TESTE-REG" },
-    { "acao": "snapshot", "nome": "17-os-preenchida" },
-
-    { "acao": "clicar", "pos": "32,541" },
-    { "acao": "teclas", "valor": "{ENTER}", "pausaMs": 1000 },
-    { "acao": "aguardar-ocioso", "timeout": 60 },
-    { "acao": "snapshot", "nome": "18-os-gravada" },
-
-    { "_etapa": "5. OS - consultar. ESTE snapshot cobre o bug do 'OS ja finalizada': com FINALIZADA=0 o Finalizar tem de estar habilitado e o Desfinalizar desabilitado." },
-    { "acao": "escrever", "pos": "24,61", "valor": "$NOVA_OS" },
-    { "acao": "clicar",   "pos": "101,62" },
-    { "acao": "aguardar-ocioso", "timeout": 40 },
-    { "acao": "conferir", "pos": "154,61", "esperado": "$NOVO_CLI" },
-    { "acao": "snapshot", "nome": "19-os-consultada-antes-de-finalizar" },
-
-    { "_etapa": "5b. OS - finalizar" },
-    { "acao": "clicar", "pos": "108,541" },
-    { "acao": "teclas", "valor": "{ENTER}", "pausaMs": 1000 },
-    { "acao": "aguardar-ocioso", "timeout": 40 },
-    { "acao": "snapshot", "nome": "20-painel-finalizacao" },
-
-    { "acao": "escrever", "pos": "381,268", "valor": "3100,00" },
-    { "acao": "snapshot", "nome": "21-finalizacao-preenchida" },
-    { "acao": "clicar",   "pos": "227,341" },
-    { "acao": "teclas",   "valor": "{ENTER}", "pausaMs": 1500 },
-    { "acao": "aguardar-ocioso", "timeout": 60 },
-    { "acao": "snapshot", "nome": "22-os-finalizada" },
-
-    { "_etapa": "5c. OS - consultar de novo: agora o Desfinalizar e que deve estar habilitado" },
-    { "acao": "escrever", "pos": "24,61", "valor": "$NOVA_OS" },
-    { "acao": "clicar",   "pos": "101,62" },
-    { "acao": "aguardar-ocioso", "timeout": 40 },
-    { "acao": "snapshot", "nome": "23-os-consultada-apos-finalizar" }
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFLogin",
+      "timeout": 60
+    },
+    {
+      "acao": "escrever",
+      "pos": "18,51",
+      "valor": "$USUARIO"
+    },
+    {
+      "acao": "escrever",
+      "pos": "17,88",
+      "valor": "$SENHA"
+    },
+    {
+      "acao": "clicar",
+      "classe": "TIAeverButton",
+      "texto": "*Entrar*"
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFPrincipal",
+      "timeout": 90
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 90
+    },
+    {
+      "acao": "snapshot",
+      "nome": "00-menu"
+    },
+    {
+      "_etapa": "1a. PROCESSO - consultar o 002 (referencia) e guardar os dados"
+    },
+    {
+      "acao": "teclas",
+      "valor": "%c",
+      "pausaMs": 400
+    },
+    {
+      "acao": "teclas",
+      "valor": "p",
+      "pausaMs": 900
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFProcessos",
+      "timeout": 40
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 40
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,75",
+      "valor": "002"
+    },
+    {
+      "acao": "clicar",
+      "pos": "91,75"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 30
+    },
+    {
+      "acao": "snapshot",
+      "nome": "01-processo-002-referencia"
+    },
+    {
+      "acao": "guardar",
+      "pos": "149,77",
+      "var": "REF_PROC_NOME"
+    },
+    {
+      "acao": "guardar",
+      "pos": "31,131",
+      "var": "REF_PROC_L1"
+    },
+    {
+      "acao": "guardar",
+      "pos": "31,156",
+      "var": "REF_PROC_L2"
+    },
+    {
+      "acao": "guardar",
+      "pos": "31,181",
+      "var": "REF_PROC_L3"
+    },
+    {
+      "acao": "guardar",
+      "pos": "30,295",
+      "var": "REF_PROC_OBS"
+    },
+    {
+      "_etapa": "1b. PROCESSO - sair e reabrir para o form gerar o proximo codigo"
+    },
+    {
+      "acao": "clicar",
+      "pos": "345,370"
+    },
+    {
+      "acao": "esperar",
+      "ms": 900
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFPrincipal",
+      "timeout": 30
+    },
+    {
+      "acao": "teclas",
+      "valor": "%c",
+      "pausaMs": 400
+    },
+    {
+      "acao": "teclas",
+      "valor": "p",
+      "pausaMs": 900
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFProcessos",
+      "timeout": 40
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 40
+    },
+    {
+      "acao": "guardar",
+      "pos": "31,75",
+      "var": "NOVO_PROC"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "02-processo-novo-codigo-automatico"
+    },
+    {
+      "_etapa": "1c. PROCESSO - replicar os dados da referencia e gravar"
+    },
+    {
+      "acao": "clicar",
+      "pos": "91,75"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 30
+    },
+    {
+      "acao": "escrever",
+      "pos": "149,77",
+      "valor": "$REF_PROC_NOME (REGRESSAO)"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,131",
+      "valor": "$REF_PROC_L1"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,156",
+      "valor": "$REF_PROC_L2"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,181",
+      "valor": "$REF_PROC_L3"
+    },
+    {
+      "acao": "escrever",
+      "pos": "30,295",
+      "valor": "$REF_PROC_OBS"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "03-processo-preenchido"
+    },
+    {
+      "acao": "clicar",
+      "pos": "45,370"
+    },
+    {
+      "acao": "dialogo",
+      "botao": "Sim",
+      "timeout": 20
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 30
+    },
+    {
+      "acao": "snapshot",
+      "nome": "04-processo-gravado"
+    },
+    {
+      "_etapa": "1d. PROCESSO - consultar o que acabou de ser criado"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,75",
+      "valor": "$NOVO_PROC"
+    },
+    {
+      "acao": "clicar",
+      "pos": "91,75"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 30
+    },
+    {
+      "acao": "conferir",
+      "pos": "31,75",
+      "esperado": "$NOVO_PROC"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "05-processo-reconsultado"
+    },
+    {
+      "acao": "clicar",
+      "pos": "345,370"
+    },
+    {
+      "acao": "esperar",
+      "ms": 900
+    },
+    {
+      "_etapa": "2a. CLIENTE - consultar o 0001 (referencia) e guardar os dados"
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFPrincipal",
+      "timeout": 30
+    },
+    {
+      "acao": "teclas",
+      "valor": "%c",
+      "pausaMs": 400
+    },
+    {
+      "acao": "teclas",
+      "valor": "c",
+      "pausaMs": 900
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFClientes",
+      "timeout": 40
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 40
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,68",
+      "valor": "0001"
+    },
+    {
+      "acao": "clicar",
+      "pos": "91,68"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 30
+    },
+    {
+      "acao": "snapshot",
+      "nome": "06-cliente-0001-referencia"
+    },
+    {
+      "acao": "guardar",
+      "pos": "31,167",
+      "var": "REF_CLI_END"
+    },
+    {
+      "acao": "guardar",
+      "pos": "370,167",
+      "var": "REF_CLI_NUM"
+    },
+    {
+      "acao": "guardar",
+      "pos": "31,215",
+      "var": "REF_CLI_BAIRRO"
+    },
+    {
+      "acao": "guardar",
+      "pos": "199,215",
+      "var": "REF_CLI_CIDADE"
+    },
+    {
+      "acao": "guardar",
+      "pos": "429,215",
+      "var": "REF_CLI_CEP"
+    },
+    {
+      "acao": "guardar",
+      "pos": "32,262",
+      "var": "REF_CLI_MUN"
+    },
+    {
+      "acao": "guardar",
+      "pos": "199,262",
+      "var": "REF_CLI_TEL"
+    },
+    {
+      "acao": "guardar",
+      "pos": "30,308",
+      "var": "REF_CLI_LTMIN"
+    },
+    {
+      "_etapa": "2b. CLIENTE - reabrir para gerar o proximo codigo"
+    },
+    {
+      "acao": "clicar",
+      "pos": "437,528"
+    },
+    {
+      "acao": "esperar",
+      "ms": 900
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFPrincipal",
+      "timeout": 30
+    },
+    {
+      "acao": "teclas",
+      "valor": "%c",
+      "pausaMs": 400
+    },
+    {
+      "acao": "teclas",
+      "valor": "c",
+      "pausaMs": 900
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFClientes",
+      "timeout": 40
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 40
+    },
+    {
+      "acao": "guardar",
+      "pos": "31,68",
+      "var": "NOVO_CLI"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "07-cliente-novo-codigo-automatico"
+    },
+    {
+      "_etapa": "2c. CLIENTE - 'Cliente Teste', demais dados replicados do 0001"
+    },
+    {
+      "acao": "clicar",
+      "pos": "91,68"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 30
+    },
+    {
+      "acao": "escrever",
+      "pos": "149,65",
+      "valor": "CLIENTE TESTE REGRESSAO LTDA"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,119",
+      "valor": "Cliente Teste"
+    },
+    {
+      "acao": "escrever",
+      "pos": "235,119",
+      "valor": "11222333000181"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,167",
+      "valor": "$REF_CLI_END"
+    },
+    {
+      "acao": "escrever",
+      "pos": "370,167",
+      "valor": "$REF_CLI_NUM"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,215",
+      "valor": "$REF_CLI_BAIRRO"
+    },
+    {
+      "acao": "escrever",
+      "pos": "199,215",
+      "valor": "$REF_CLI_CIDADE"
+    },
+    {
+      "acao": "escrever",
+      "pos": "429,215",
+      "valor": "$REF_CLI_CEP"
+    },
+    {
+      "acao": "escrever",
+      "pos": "32,262",
+      "valor": "$REF_CLI_MUN"
+    },
+    {
+      "acao": "escrever",
+      "pos": "199,262",
+      "valor": "$REF_CLI_TEL"
+    },
+    {
+      "acao": "escrever",
+      "pos": "30,308",
+      "valor": "$REF_CLI_LTMIN"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "08-cliente-preenchido"
+    },
+    {
+      "acao": "clicar",
+      "pos": "33,528"
+    },
+    {
+      "acao": "dialogo",
+      "botao": "Sim",
+      "timeout": 20
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 30
+    },
+    {
+      "acao": "snapshot",
+      "nome": "09-cliente-gravado"
+    },
+    {
+      "_etapa": "2d. CLIENTE - consultar de volta"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,68",
+      "valor": "$NOVO_CLI"
+    },
+    {
+      "acao": "clicar",
+      "pos": "91,68"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 30
+    },
+    {
+      "acao": "conferir",
+      "pos": "31,119",
+      "esperado": "Cliente Teste"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "10-cliente-reconsultado"
+    },
+    {
+      "acao": "clicar",
+      "pos": "437,528"
+    },
+    {
+      "acao": "esperar",
+      "ms": 900
+    },
+    {
+      "_etapa": "3. PECA - primeira peca do Cliente Teste, com o processo novo"
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFPrincipal",
+      "timeout": 30
+    },
+    {
+      "acao": "teclas",
+      "valor": "%c",
+      "pausaMs": 400
+    },
+    {
+      "acao": "teclas",
+      "valor": "e",
+      "pausaMs": 900
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFPecas",
+      "timeout": 40
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 40
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,70",
+      "valor": "$NOVO_CLI"
+    },
+    {
+      "acao": "esperar",
+      "ms": 900
+    },
+    {
+      "acao": "guardar",
+      "pos": "391,70",
+      "var": "NOVA_PECA"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "11-peca-codigo-automatico"
+    },
+    {
+      "acao": "clicar",
+      "pos": "451,70"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 30
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,116",
+      "valor": "PECA TESTE REGRESSAO"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,157",
+      "valor": "ACO 1045"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,197",
+      "valor": "COD-CLI-TESTE"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,361",
+      "valor": "$NOVO_PROC"
+    },
+    {
+      "acao": "esperar",
+      "ms": 800
+    },
+    {
+      "acao": "escrever",
+      "pos": "32,322",
+      "valor": "15,50"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,403",
+      "valor": "58 HRC"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "12-peca-preenchida"
+    },
+    {
+      "acao": "clicar",
+      "pos": "37,577"
+    },
+    {
+      "acao": "dialogo",
+      "botao": "Sim",
+      "timeout": 20
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 30
+    },
+    {
+      "acao": "snapshot",
+      "nome": "13-peca-gravada"
+    },
+    {
+      "_etapa": "3b. PECA - consultar e conferir cliente + processo vinculados"
+    },
+    {
+      "acao": "escrever",
+      "pos": "31,70",
+      "valor": "$NOVO_CLI"
+    },
+    {
+      "acao": "esperar",
+      "ms": 900
+    },
+    {
+      "acao": "escrever",
+      "pos": "391,70",
+      "valor": "$NOVA_PECA"
+    },
+    {
+      "acao": "clicar",
+      "pos": "451,70"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 30
+    },
+    {
+      "acao": "conferir",
+      "pos": "31,361",
+      "esperado": "$NOVO_PROC"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "14-peca-reconsultada"
+    },
+    {
+      "acao": "clicar",
+      "pos": "404,577"
+    },
+    {
+      "acao": "esperar",
+      "ms": 900
+    },
+    {
+      "_etapa": "4. ORDEM DE SERVICO - emitir com codigo automatico"
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFPrincipal",
+      "timeout": 30
+    },
+    {
+      "acao": "teclas",
+      "valor": "%o",
+      "pausaMs": 1000
+    },
+    {
+      "acao": "aguardar-janela",
+      "classe": "TFOs",
+      "timeout": 40
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 40
+    },
+    {
+      "acao": "guardar",
+      "pos": "24,61",
+      "var": "NOVA_OS"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "15-os-codigo-automatico"
+    },
+    {
+      "acao": "clicar",
+      "pos": "101,62"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 40
+    },
+    {
+      "acao": "snapshot",
+      "nome": "16-os-apos-ok"
+    },
+    {
+      "acao": "escrever",
+      "pos": "154,61",
+      "valor": "$NOVO_CLI"
+    },
+    {
+      "acao": "esperar",
+      "ms": 900
+    },
+    {
+      "acao": "escrever",
+      "pos": "28,115",
+      "valor": "$NOVA_PECA"
+    },
+    {
+      "acao": "esperar",
+      "ms": 900
+    },
+    {
+      "acao": "escrever",
+      "pos": "478,61",
+      "valor": "999888"
+    },
+    {
+      "acao": "escrever",
+      "pos": "28,407",
+      "valor": "10"
+    },
+    {
+      "acao": "escrever",
+      "pos": "221,406",
+      "valor": "200,00"
+    },
+    {
+      "acao": "escrever",
+      "pos": "100,407",
+      "valor": "CAIXA"
+    },
+    {
+      "acao": "escrever",
+      "pos": "28,446",
+      "valor": "LOTE-TESTE-REG"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "17-os-preenchida"
+    },
+    {
+      "acao": "clicar",
+      "pos": "32,541"
+    },
+    {
+      "acao": "dialogo",
+      "botao": "Sim",
+      "timeout": 20
+    },
+    {
+      "acao": "dialogo",
+      "botao": "Nao",
+      "timeout": 25,
+      "opcional": true,
+      "_nota": "Deseja imprimir essa Ordem de Servico?"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 60
+    },
+    {
+      "acao": "snapshot",
+      "nome": "18-os-gravada"
+    },
+    {
+      "_etapa": "5. OS - consultar. ESTE snapshot cobre o bug do 'OS ja finalizada': com FINALIZADA=0 o Finalizar tem de estar habilitado e o Desfinalizar desabilitado."
+    },
+    {
+      "acao": "escrever",
+      "pos": "24,61",
+      "valor": "$NOVA_OS"
+    },
+    {
+      "acao": "clicar",
+      "pos": "101,62"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 40
+    },
+    {
+      "acao": "conferir",
+      "pos": "154,61",
+      "esperado": "$NOVO_CLI"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "19-os-consultada-antes-de-finalizar"
+    },
+    {
+      "_etapa": "5b. OS - finalizar"
+    },
+    {
+      "acao": "clicar",
+      "pos": "108,541"
+    },
+    {
+      "acao": "dialogo",
+      "botao": "Sim",
+      "timeout": 20
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 40
+    },
+    {
+      "acao": "snapshot",
+      "nome": "20-painel-finalizacao"
+    },
+    {
+      "acao": "escrever",
+      "pos": "381,268",
+      "valor": "3100,00"
+    },
+    {
+      "acao": "snapshot",
+      "nome": "21-finalizacao-preenchida"
+    },
+    {
+      "acao": "clicar",
+      "pos": "227,341"
+    },
+    {
+      "acao": "dialogo",
+      "botao": "Sim",
+      "timeout": 20
+    },
+    {
+      "acao": "dialogo",
+      "botao": "Nao",
+      "timeout": 25,
+      "opcional": true,
+      "_nota": "Deseja imprimir o Certificado de Qualidade?"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 60
+    },
+    {
+      "acao": "snapshot",
+      "nome": "22-os-finalizada"
+    },
+    {
+      "_etapa": "5c. OS - consultar de novo: agora o Desfinalizar e que deve estar habilitado"
+    },
+    {
+      "acao": "escrever",
+      "pos": "24,61",
+      "valor": "$NOVA_OS"
+    },
+    {
+      "acao": "clicar",
+      "pos": "101,62"
+    },
+    {
+      "acao": "aguardar-ocioso",
+      "timeout": 40
+    },
+    {
+      "acao": "snapshot",
+      "nome": "23-os-consultada-apos-finalizar"
+    }
   ]
 }
