@@ -147,3 +147,19 @@ Do snapshot real (`TFLogin`, "Login de Usuário"):
 | Senha | `TEdit@17,88` | idem | `"pos": "17,88"` |
 | Entrar | `TIAeverButton@30,143` | idem | `"texto": "*Entrar*"` |
 | Sair | `TIAeverButton@110,143` | idem | |
+
+## Nota técnica: por que `WM_GETTEXT` e não `GetWindowText`
+
+A primeira versão lia os controles com `GetWindowText` e os campos vinham
+**vazios** — enquanto o título da janela e a legenda dos botões vinham certos.
+
+A documentação da Microsoft explica: para janela de **outro processo**,
+`GetWindowText` devolve apenas o texto guardado no lado do sistema. Isso existe
+para o título de um form e para a legenda de um `BUTTON`, mas **não** para um
+`EDIT`, cujo conteúdo vive no processo dono.
+
+`WM_GETTEXT` resolve porque é mensagem de sistema: o Windows faz o marshalling
+do buffer entre os processos. Usado com timeout, para não travar o harness se o
+sistema estiver ocupado numa query.
+
+Se um dia os campos voltarem a aparecer vazios, é aqui que se olha.

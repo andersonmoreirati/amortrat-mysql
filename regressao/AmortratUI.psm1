@@ -73,16 +73,33 @@ public class AUI {
   [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
   [StructLayout(LayoutKind.Sequential)] public struct POINT { public int X, Y; }
 
+  [DllImport("user32", EntryPoint="SendMessageTimeoutW", CharSet=CharSet.Unicode)]
+  public static extern IntPtr SendMsgTimeoutBuf(IntPtr h, uint m, IntPtr w, StringBuilder l, uint flags, uint ms, out IntPtr res);
+
   public static string Cls(IntPtr h){ var s=new StringBuilder(256); GetClassName(h,s,256); return s.ToString(); }
+
+  // Le o texto de um controle de OUTRO processo.
+  //
+  // GetWindowText NAO serve aqui: a documentacao da Microsoft e explicita -
+  // para janela de outro processo ela devolve apenas o texto guardado no lado
+  // do sistema. Isso funciona para o titulo de um form e para a legenda de um
+  // BUTTON, mas devolve VAZIO para um EDIT, cujo conteudo vive no processo
+  // dono. Foi assim que o primeiro snapshot trouxe '&Entrar' e 'Login de
+  // Usuario' mas deixou os campos em branco.
+  //
+  // WM_GETTEXT resolve porque e mensagem de sistema: o Windows faz o
+  // marshalling do buffer entre os processos. Com timeout para nao travar o
+  // harness se o app estiver ocupado numa query.
   public static string Txt(IntPtr h){
-    // WM_GETTEXT com timeout: se a janela estiver ocupada nao trava o harness
     IntPtr len;
-    if (SendMessageTimeoutW(h, 0x000E /*WM_GETTEXTLENGTH*/, IntPtr.Zero, IntPtr.Zero, 0x2 /*ABORTIFHUNG*/, 1000, out len) == IntPtr.Zero)
+    if (SendMessageTimeoutW(h, 0x000E /*WM_GETTEXTLENGTH*/, IntPtr.Zero, IntPtr.Zero, 0x2 /*ABORTIFHUNG*/, 1500, out len) == IntPtr.Zero)
       return null;
     int n = len.ToInt32();
     if (n <= 0) return "";
     var sb = new StringBuilder(n + 2);
-    GetWindowTextW(h, sb, n + 2);
+    IntPtr r;
+    if (SendMsgTimeoutBuf(h, 0x000D /*WM_GETTEXT*/, (IntPtr)(n + 1), sb, 0x2, 1500, out r) == IntPtr.Zero)
+      return null;
     return sb.ToString();
   }
 }
@@ -93,7 +110,7 @@ public class AUI {
   $exigidos = @('EnumWindows','EnumChildWindows','GetClassName','GetWindowTextW',
                 'GetWindowThreadProcessId','IsWindowVisible','IsWindowEnabled',
                 'GetParent','GetWindowRect','SendMessageW','SendMessageTimeoutW',
-                'PrintWindow','IsHungAppWindow','Cls','Txt')
+                'SendMsgTimeoutBuf','PrintWindow','IsHungAppWindow','Cls','Txt')
   $faltam = @($exigidos | Where-Object { -not $script:_tipoAUI.GetMethod($_) })
   if ($faltam.Count -gt 0) {
     throw ("O tipo AUI ja carregado nesta sessao esta desatualizado " +
