@@ -50,12 +50,20 @@ param(
   [Parameter(Mandatory)][string]$Rotulo,
   [string]$Usuario = "",
   [string]$Senha   = "",
-  [string]$SaidaRaiz = "$PSScriptRoot\resultados",
+  [string]$SaidaRaiz,
   [switch]$ManterAberto
 )
 
 $ErrorActionPreference = "Stop"
-Import-Module "$PSScriptRoot\AmortratUI.psm1" -Force
+
+# $PSScriptRoot nem sempre esta disponivel na avaliacao do valor padrao de um
+# parametro (depende de como o script foi invocado). Resolver aqui, com
+# fallback, evita caminho quebrado quando chamado pelo wrapper .cmd.
+$raizScript = $PSScriptRoot
+if (-not $raizScript) { $raizScript = Split-Path -Parent $MyInvocation.MyCommand.Path }
+if (-not $SaidaRaiz)  { $SaidaRaiz  = Join-Path $raizScript "resultados" }
+
+Import-Module (Join-Path $raizScript "AmortratUI.psm1") -Force
 
 if (-not (Test-Path $Exe))     { throw "executavel nao encontrado: $Exe" }
 if (-not (Test-Path $Roteiro)) { throw "roteiro nao encontrado: $Roteiro" }

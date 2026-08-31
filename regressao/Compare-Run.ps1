@@ -35,11 +35,19 @@ param(
   [Parameter(Mandatory)][string]$Roteiro,
   [string]$A = "paradox",
   [string]$B = "mysql",
-  [string]$SaidaRaiz = "$PSScriptRoot\resultados",
+  [string]$SaidaRaiz,
   [switch]$IgnorarEstrutura
 )
 
 $ErrorActionPreference = "Stop"
+
+# $PSScriptRoot nem sempre esta disponivel na avaliacao do valor padrao de um
+# parametro (depende de como o script foi invocado - via -File pelo cmd, por
+# exemplo). Resolver aqui no corpo, com fallback, evita o caminho sair como
+# "\resultados\..." e o script nao achar as execucoes.
+$raizScript = $PSScriptRoot
+if (-not $raizScript) { $raizScript = Split-Path -Parent $MyInvocation.MyCommand.Path }
+if (-not $SaidaRaiz)  { $SaidaRaiz  = Join-Path $raizScript "resultados" }
 
 $dirA = Join-Path $SaidaRaiz "$Roteiro\$A"
 $dirB = Join-Path $SaidaRaiz "$Roteiro\$B"

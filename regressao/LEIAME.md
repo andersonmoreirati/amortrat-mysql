@@ -14,25 +14,44 @@ regressao/
 
 ## Como usar
 
-```powershell
+Use os wrappers `.cmd` — eles **não dependem da Execution Policy**:
+
+```
 cd C:\Amortrat\mysql\code\regressao
 
-# 1) roda contra a versão Paradox
-.\Run-Roteiro.ps1 -Roteiro roteiros\00-abertura.json `
-                  -Exe "C:\Amortrat\code\amortrat.exe" `
-                  -Rotulo paradox -Usuario SEU_USER -Senha SUA_SENHA
+rodar.cmd paradox ADMIN 4044
+rodar.cmd mysql   ADMIN 4044
+comparar.cmd
+```
 
-# 2) roda contra a versão MySQL
-.\Run-Roteiro.ps1 -Roteiro roteiros\00-abertura.json `
-                  -Exe "C:\Amortrat\mysql\code\amortrat.exe" `
-                  -Rotulo mysql -Usuario SEU_USER -Senha SUA_SENHA
+Com outro roteiro:
 
-# 3) compara
-.\Compare-Run.ps1 -Roteiro 00-abertura
+```
+rodar.cmd paradox ADMIN 4044 roteiros\02-cliente.json
+rodar.cmd mysql   ADMIN 4044 roteiros\02-cliente.json
+comparar.cmd 02-cliente
 ```
 
 O relatório sai em `resultados\00-abertura\relatorio-paradox-x-mysql.html`, com
-as telas lado a lado.
+as telas lado a lado — o `comparar.cmd` já o abre no navegador.
+
+### Se preferir chamar os `.ps1` direto
+
+O PowerShell vem com policy `Restricted` no Windows e recusa rodar `.ps1`.
+Libere por sessão:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+ou de forma permanente para o seu usuário (não exige admin):
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
+
+`RemoteSigned` permite scripts locais e exige assinatura só nos baixados da
+internet — é o que a Microsoft recomenda para máquina de desenvolvimento.
 
 ## Como o resultado é classificado
 
