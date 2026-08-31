@@ -182,3 +182,52 @@ do buffer entre os processos. Usado com timeout, para não travar o harness se o
 sistema estiver ocupado numa query.
 
 Se um dia os campos voltarem a aparecer vazios, é aqui que se olha.
+
+## Ferramentas de apoio
+
+### `mapear-dfm.js` — seletores sem precisar rodar o sistema
+
+Lê um `.dfm` e devolve a posição de cada controle **na tela**, no mesmo formato
+de chave que o harness usa:
+
+```
+node mapear-dfm.js "C:/Amortrat/mysql/code/UOS.dfm" --so-visiveis
+```
+
+A fórmula é `Σ(Left/Top dos ancestrais) + (8, 31)` — os 8 e 31 são a borda
+lateral e a barra de título de um form em 96 DPI. Calibrada e conferida contra
+um snapshot real do `ULogin`: as 5 posições bateram exatamente.
+
+Colunas: `NOME` (o do Delphi), `CLASSE`, `CHAVE/pos`, `H` (tem handle?) e o
+container onde está.
+
+### `validar-roteiro.js` — confere o roteiro antes de executar
+
+```
+node validar-roteiro.js roteiros\10-ciclo-completo.json
+```
+
+Cruza cada `"pos"` do roteiro com o mapa do DFM da tela corrente. Acusa
+seletor apontando para lugar vazio e avisa quando o alvo é `TGraphicControl`
+(sem handle — o harness não alcança). Sai com código 1 se houver erro, então
+serve em script de CI.
+
+## Roteiro `10-ciclo-completo`
+
+Cobre o ciclo inteiro: **processo → cliente → peça → OS → consulta →
+finalização**, com 21 snapshots.
+
+```
+rodar.cmd paradox ADMIN 4044 roteiros\10-ciclo-completo.json
+rodar.cmd mysql   ADMIN 4044 roteiros\10-ciclo-completo.json
+comparar.cmd 10-ciclo-completo
+```
+
+**Códigos usados:** processo `902`, cliente `9001`, peça `001`. Se já existirem
+na base, o roteiro **altera** em vez de criar — troque-os no JSON ou use base
+limpa.
+
+**O snapshot `17-os-consultada-antes-de-finalizar` é o mais importante:** é
+exatamente onde o bug do *"OS já finalizada"* se manifestava. Com `FINALIZADA=0`
+o `BTFinalizar` tem de estar habilitado e o `BTDesfinalizar` desabilitado. Uma
+divergência ali aparece como **ESTADO** no relatório.

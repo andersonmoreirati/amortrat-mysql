@@ -168,6 +168,22 @@ try {
         }
       }
 
+      'teclas' {
+        # Unico jeito de acionar o menu principal: ele e TBcBarMainMenu e, como
+        # todo menu do VCL, nao tem handle. Os itens tem acelerador no Caption
+        # ('&Cadastro' -> Alt+C), entao vai por teclado.
+        if (-not $janela) { Log "ERRO: 'teclas' sem janela corrente"; $erros++; continue }
+        $ms = if ($passo.PSObject.Properties.Name -contains 'pausaMs') { [int]$passo.pausaMs } else { 300 }
+        Send-Teclas -Handle ([IntPtr]$janela.Handle) -Teclas $passo.valor -PausaMs $ms
+        Log "teclas '$($passo.valor)'"
+      }
+
+      'focar' {
+        if (-not $janela) { Log "ERRO: 'focar' sem janela corrente"; $erros++; continue }
+        $ok = Set-JanelaFoco -Handle ([IntPtr]$janela.Handle)
+        Log ("focar [{0}]: {1}" -f $janela.Class, $(if ($ok) { 'ok' } else { 'NAO obteve foco' }))
+      }
+
       'esperar' { Start-Sleep -Milliseconds ([int]$passo.ms) }
 
       default { Log "ERRO: acao desconhecida '$($passo.acao)'"; $erros++ }

@@ -331,6 +331,46 @@ function Invoke-ControlClick {
   [void][AUI]::SendMessageW($Handle, $script:BM_CLICK, [IntPtr]::Zero, [IntPtr]::Zero)
 }
 
+function Set-JanelaFoco {
+  <#  Traz a janela para frente e garante que ela recebe o teclado.
+
+      AttachThreadInput e necessario: sem anexar a fila de entrada da thread
+      dona da janela, o Windows recusa o SetForegroundWindow vindo de outro
+      processo (protecao contra roubo de foco).  #>
+  param([Parameter(Mandatory)][IntPtr]$Handle)
+
+  $tidAlvo = [AUI]::GetWindowThreadProcessId($Handle, [ref]([uint32]0))
+  $tidMeu  = [AUI]::GetCurrentThreadId()
+  [void][AUI]::AttachThreadInput($tidMeu, $tidAlvo, $true)
+  try {
+    [void][AUI]::SetForegroundWindow($Handle)
+    Start-Sleep -Milliseconds 120
+  } finally {
+    [void][AUI]::AttachThreadInput($tidMeu, $tidAlvo, $false)
+  }
+  return ([AUI]::GetForegroundWindow() -eq $Handle)
+}
+
+function Send-Teclas {
+  <#  Envia teclas para a janela em foco.
+
+      Este e o unico caminho para acionar o menu principal: ele e um
+      TBcBarMainMenu e, como todo menu do VCL, NAO tem handle de janela - nao
+      da para localiza-lo nem clicar por API. Mas os itens tem tecla de
+      aceleracao no Caption ('&Cadastro' -> Alt+C), entao o teclado resolve.
+
+      Sintaxe do SendKeys: %c = Alt+C, ^s = Ctrl+S, {ENTER}, {TAB}, {ESC}.  #>
+  param(
+    [Parameter(Mandatory)][IntPtr]$Handle,
+    [Parameter(Mandatory)][string]$Teclas,
+    [int]$PausaMs = 250
+  )
+  Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
+  [void](Set-JanelaFoco -Handle $Handle)
+  [System.Windows.Forms.SendKeys]::SendWait($Teclas)
+  Start-Sleep -Milliseconds $PausaMs
+}
+
 function Select-ComboItem {
   <#  Seleciona item de TComboBox pelo texto. Mesma tecnica de ponteiro do
       Set-ControlText, pelo mesmo motivo (tipo em cache na sessao).  #>
@@ -406,5 +446,6 @@ function New-Snapshot {
 }
 
 Export-ModuleMember -Function Get-AmortratWindows, Wait-AmortratWindow, Wait-AmortratIdle,
+  Set-JanelaFoco, Send-Teclas,
   Get-ControlTree, Get-ControlKey, Find-Control, Set-ControlText, Invoke-ControlClick,
   Select-ComboItem, Save-WindowImage, New-Snapshot
