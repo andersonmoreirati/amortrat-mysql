@@ -14,22 +14,25 @@ regressao/
 
 ## Como usar
 
-Use os wrappers `.cmd` — eles **não dependem da Execution Policy**:
+Use os wrappers `.cmd` — eles **não dependem da Execution Policy**.
 
-```
+No **PowerShell** o `.\` é obrigatório: ele não executa nada do diretório atual
+sem caminho explícito (diferente do `cmd.exe`).
+
+```powershell
 cd C:\Amortrat\mysql\code\regressao
 
-rodar.cmd paradox ADMIN 4044
-rodar.cmd mysql   ADMIN 4044
-comparar.cmd
+.\rodar.cmd paradox ADMIN 4044
+.\rodar.cmd mysql   ADMIN 4044
+.\comparar.cmd
 ```
 
 Com outro roteiro:
 
-```
-rodar.cmd paradox ADMIN 4044 roteiros\02-cliente.json
-rodar.cmd mysql   ADMIN 4044 roteiros\02-cliente.json
-comparar.cmd 02-cliente
+```powershell
+.\rodar.cmd paradox ADMIN 4044 roteiros\10-ciclo-completo.json
+.\rodar.cmd mysql   ADMIN 4044 roteiros\10-ciclo-completo.json
+.\comparar.cmd 10-ciclo-completo
 ```
 
 O relatório sai em `resultados\00-abertura\relatorio-paradox-x-mysql.html`, com
@@ -217,10 +220,10 @@ serve em script de CI.
 Cobre o ciclo inteiro — **processo → cliente → peça → OS → consulta →
 finalização** — em 24 snapshots.
 
-```
-rodar.cmd paradox ADMIN 4044 roteiros\10-ciclo-completo.json
-rodar.cmd mysql   ADMIN 4044 roteiros\10-ciclo-completo.json
-comparar.cmd 10-ciclo-completo
+```powershell
+.\rodar.cmd paradox ADMIN 4044 roteiros\10-ciclo-completo.json
+.\rodar.cmd mysql   ADMIN 4044 roteiros\10-ciclo-completo.json
+.\comparar.cmd 10-ciclo-completo
 ```
 
 ### Referência × cadastro novo
